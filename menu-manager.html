@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Menu - CTC  Badminton Billing System</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .manager-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .manager-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .add-item-form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .items-list {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .item-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .item-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .item-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .item-card h3 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .item-card .category {
+            color: #667eea;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        
+        .item-card .price {
+            color: #333;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .item-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-edit {
+            background: #48dbfb;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            flex: 1;
+        }
+        
+        .btn-delete {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            flex: 1;
+        }
+        
+        .btn-edit:hover {
+            background: #0abde3;
+        }
+        
+        .btn-delete:hover {
+            background: #ff3838;
+        }
+        
+        .settings-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .items-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .manager-container {
+                padding: 10px;
+            }
+            
+            .add-item-form,
+            .items-list,
+            .settings-section {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>CTC Sports Club Badminton Billing System</h1>
+        <nav>
+            <a href="sports-selection.html">Choose Sport</a>
+            <a href="index.html">Billing</a>
+            <a href="sales-report.html">Sales Report</a>
+            <a href="menu-manager.html" class="active">Manage Menu</a>
+            <a href="#" onclick="logout(); return false;" style="color: #ff4757;">Logout</a>
+        </nav>
+    </header>
+
+    <main class="manager-container">
+        <div class="manager-header">
+            <h2>Menu Management</h2>
+        </div>
+
+        <div class="settings-section">
+            <h3>Settings</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Merchant Name</label>
+                    <input type="text" id="merchantName" placeholder="CTC Sports Club">
+                </div>
+                <div class="form-group">
+                    <label>UPI ID</label>
+                    <input type="text" id="upiId" placeholder="merchant@upi">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>QR Code Image Path (Optional)</label>
+                <input type="text" id="qrImagePath" placeholder="images/qr-code.png">
+                <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
+                    <strong>How to add your QR code:</strong><br>
+                    1. Generate QR code from your UPI ID using any QR generator<br>
+                    2. Save the image as "qr-code.png" in the "images" folder<br>
+                    3. Enter path: <code>images/qr-code.png</code><br>
+                    4. Or use online URL: <code>https://your-url.com/qr-code.png</code><br>
+                    <strong>Leave empty</strong> to auto-generate QR code from UPI ID above.
+                </small>
+            </div>
+            <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+        </div>
+
+        <div class="add-item-form">
+            <h3 id="formTitle">Add New Item</h3>
+            <form id="itemForm" onsubmit="handleFormSubmit(event)">
+                <input type="hidden" id="itemId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Item Name</label>
+                        <input type="text" id="itemName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="itemCategory" required>
+                            <option value="Badminton">Badminton</option>
+                            <option value="Cricket">Cricket</option>
+                            <option value="Pickleball">Pickleball</option>
+                            <option value="Beverages">Beverages</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Price (₹)</label>
+                    <input type="number" id="itemPrice" min="0" step="0.01" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Item</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()">Cancel</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="items-list">
+            <h3>Menu Items</h3>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label>Select Menu Item to Edit/Delete:</label>
+                <select id="menuItemsDropdown" onchange="loadSelectedItem()" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                    <option value="">-- Select an item to edit or delete --</option>
+                </select>
+            </div>
+            <div id="selectedItemDetails" style="display: none;">
+                <div class="item-card" id="itemCard">
+                    <!-- Selected item details will be shown here -->
+                </div>
+            </div>
+            <div class="items-grid" id="itemsGrid" style="display: none;">
+                <!-- Items will be loaded here (hidden, using dropdown instead) -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Firebase Config -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- Firebase Service -->
+    <script src="firebase-service.js"></script>
+    
+    <script src="script.js"></script>
+    <script>
+        let editingItemId = null;
+
+        async function loadSettings() {
+            let settings;
+            if (window.firebaseService && firebaseService.isEnabled()) {
+                settings = await firebaseService.loadSettingsFromFirebase();
+            } else {
+                settings = JSON.parse(localStorage.getItem('settings') || '{}');
+            }
+            
+            if (settings.merchantName) {
+                document.getElementById('merchantName').value = settings.merchantName;
+            }
+            if (settings.upiId) {
+                document.getElementById('upiId').value = settings.upiId;
+            }
+            if (settings.qrImagePath) {
+                document.getElementById('qrImagePath').value = settings.qrImagePath;
+            }
+        }
+
+        async function saveSettings() {
+            const settings = {
+                merchantName: document.getElementById('merchantName').value,
+                upiId: document.getElementById('upiId').value,
+                qrImagePath: document.getElementById('qrImagePath').value
+            };
+            
+            if (window.firebaseService && firebaseService.isEnabled()) {
+                await firebaseService.saveSettingsToFirebase(settings);
+            } else {
+                localStorage.setItem('settings', JSON.stringify(settings));
+            }
+            alert('Settings saved successfully!');
+        }
+
+        async function loadItems() {
+            // Reload menu items from Firebase or localStorage
+            let items;
+            if (window.firebaseService && firebaseService.isEnabled()) {
+                items = await firebaseService.loadMenuItemsFromFirebase();
+            } else {
+                const stored = localStorage.getItem('menuItems');
+                items = stored ? JSON.parse(stored) : [];
+            }
+            const dropdown = document.getElementById('menuItemsDropdown');
+            
+            // Clear existing options except the first one
+            dropdown.innerHTML = '<option value="">-- Select an item to edit or delete --</option>';
+            
+            if (items.length === 0) {
+                dropdown.innerHTML += '<option value="" disabled>No items in menu. Add your first item above.</option>';
+                return;
+            }
+            
+            // Populate dropdown
+            items.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = `${item.name} (${item.category}) - ₹${item.price}`;
+                dropdown.appendChild(option);
+            });
+        }
+        
+        async function loadSelectedItem() {
+            const dropdown = document.getElementById('menuItemsDropdown');
+            const selectedId = parseInt(dropdown.value);
+            const detailsDiv = document.getElementById('selectedItemDetails');
+            const itemCard = document.getElementById('itemCard');
+            
+            if (!selectedId) {
+                detailsDiv.style.display = 'none';
+                return;
+            }
+            
+            // Get item from Firebase or localStorage
+            let items;
+            if (window.firebaseService && firebaseService.isEnabled()) {
+                items = await firebaseService.loadMenuItemsFromFirebase();
+            } else {
+                const stored = localStorage.getItem('menuItems');
+                items = stored ? JSON.parse(stored) : [];
+            }
+            const item = items.find(i => i.id === selectedId);
+            
+            if (!item) {
+                alert('Item not found. Please refresh the page.');
+                loadItems();
+                return;
+            }
+            
+            // Display item details
+            itemCard.innerHTML = `
+                <h3>${item.name}</h3>
+                <div class="category">${item.category}</div>
+                <div class="price">₹${item.price}</div>
+                <div class="item-actions" style="margin-top: 15px;">
+                    <button class="btn-edit" onclick="editItem(${item.id})">Edit</button>
+                    <button class="btn-delete" onclick="deleteItem(${item.id})">Delete</button>
+                </div>
+            `;
+            
+            detailsDiv.style.display = 'block';
+        }
+
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            const item = {
+                name: document.getElementById('itemName').value.trim(),
+                category: document.getElementById('itemCategory').value,
+                price: parseFloat(document.getElementById('itemPrice').value)
+            };
+            
+            // Validate
+            if (!item.name) {
+                alert('Please enter item name');
+                return;
+            }
+            if (isNaN(item.price) || item.price < 0) {
+                alert('Please enter a valid price');
+                return;
+            }
+            
+            if (editingItemId) {
+                updateMenuItem(editingItemId, item);
+                alert('Item updated successfully!');
+            } else {
+                addMenuItem(item);
+                alert('Item added successfully!');
+            }
+            
+            resetForm();
+            loadItems();
+            // Clear dropdown selection after save
+            document.getElementById('menuItemsDropdown').value = '';
+            document.getElementById('selectedItemDetails').style.display = 'none';
+        }
+
+        function editItem(id) {
+            // Reload from localStorage to get latest data
+            const stored = localStorage.getItem('menuItems');
+            const items = stored ? JSON.parse(stored) : [];
+            const item = items.find(i => i.id === id);
+            
+            if (!item) {
+                alert('Item not found. Please refresh the page.');
+                loadItems();
+                return;
+            }
+            
+            editingItemId = id;
+            document.getElementById('itemId').value = id;
+            document.getElementById('itemName').value = item.name;
+            document.getElementById('itemCategory').value = item.category;
+            document.getElementById('itemPrice').value = item.price;
+            document.getElementById('formTitle').textContent = 'Edit Item';
+            
+            // Select in dropdown
+            document.getElementById('menuItemsDropdown').value = id;
+            
+            document.getElementById('itemForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function deleteItem(id) {
+            // Reload from localStorage to get latest data
+            const stored = localStorage.getItem('menuItems');
+            const items = stored ? JSON.parse(stored) : [];
+            const item = items.find(i => i.id === id);
+            
+            if (!item) {
+                alert('Item not found. Please refresh the page.');
+                loadItems();
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to delete "${item.name}"?\n\nThis action cannot be undone.`)) {
+                deleteMenuItem(id);
+                alert('Item deleted successfully!');
+                loadItems();
+                // Clear dropdown selection after delete
+                document.getElementById('menuItemsDropdown').value = '';
+                document.getElementById('selectedItemDetails').style.display = 'none';
+            }
+        }
+
+        function resetForm() {
+            editingItemId = null;
+            document.getElementById('itemForm').reset();
+            document.getElementById('itemId').value = '';
+            document.getElementById('formTitle').textContent = 'Add New Item';
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('username');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Check authentication
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check auth
+            if (window.firebaseService && firebaseService.isEnabled()) {
+                const isAuth = await firebaseService.checkFirebaseAuth();
+                if (!isAuth) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                firebaseService.setupRealtimeSync();
+            } else if (localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            await loadSettings();
+            await loadItems();
+        });
+    </script>
+</body>
+</html>

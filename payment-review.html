@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment & Review - CTC Sports Club</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        .payment-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            margin-bottom: 25px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .page-header h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .review-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .review-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .booking-method-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            margin-top: 20px;
+        }
+        
+        .booking-method-section > label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .booking-options {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .booking-options label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            margin-bottom: 0;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 5px;
+            border: 2px solid #ddd;
+            transition: all 0.3s;
+        }
+        
+        .booking-options label:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .booking-options input[type="radio"]:checked + span {
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .booking-options input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .booking-options label:has(input[type="radio"]:checked) {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+        
+        .cart-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+        
+        .cart-item-info h3 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .cart-item-info .item-details {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .cart-item-price {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .total-section {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8edff 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 25px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+            border: 2px solid rgba(102, 126, 234, 0.2);
+        }
+        
+        .total-section h2 {
+            color: #667eea;
+            font-size: 36px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .payment-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .payment-buttons button {
+            flex: 1;
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-paynow {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-paynow:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+        
+        .btn-print {
+            background: linear-gradient(135deg, #48dbfb 0%, #0abde3 100%);
+            color: white;
+        }
+        
+        .btn-print:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(72, 219, 251, 0.5);
+        }
+        
+        /* PayNow Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            margin: 5% auto;
+            margin-bottom: 5%;
+            padding: 35px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 450px;
+            max-height: 90vh;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            position: relative;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .qr-container {
+            margin: 20px 0;
+            min-height: 250px;
+        }
+        
+        #qrCode {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            align-items: center;
+        }
+        
+        #qrCode canvas,
+        #qrCode img {
+            border: 5px solid #f0f0f0;
+            border-radius: 10px;
+            padding: 10px;
+            max-width: 100%;
+            height: auto;
+        }
+        
+        #qrCode img {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+        }
+        
+        /* Print Bill Styles */
+        .bill-print {
+            display: none;
+        }
+        
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            
+            .bill-print,
+            .bill-print * {
+                visibility: visible;
+            }
+            
+            .bill-print {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white;
+                padding: 40px;
+            }
+            
+            header,
+            .payment-container,
+            .modal {
+                display: none !important;
+            }
+        }
+        
+        .bill-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #333;
+        }
+        
+        .bill-header h2 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .bill-header p {
+            margin: 5px 0;
+            color: #666;
+        }
+        
+        .bill-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        
+        .bill-table th,
+        .bill-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .bill-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .bill-table tfoot {
+            border-top: 2px solid #333;
+        }
+        
+        .bill-table tfoot td {
+            font-size: 18px;
+            padding-top: 15px;
+        }
+        
+        .bill-footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #333;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .payment-buttons {
+                flex-direction: column;
+            }
+            
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+                margin: 2% auto;
+                max-height: 96vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>CTC Sports Club Billing System</h1>
+        <nav>
+            <a href="sports-selection.html">Choose Sport</a>
+            <a href="#" onclick="logout(); return false;" style="color: #ff4757;">Logout</a>
+        </nav>
+    </header>
+
+    <main class="payment-container">
+        <div class="page-header">
+            <h1>Review & Payment</h1>
+            <p style="color: #666;">Review your order and proceed to payment</p>
+        </div>
+        
+        <div class="review-section">
+            <h2>Order Summary</h2>
+            <div id="cartItems">
+                <!-- Cart items will be loaded here -->
+            </div>
+            
+            <div class="booking-method-section">
+                <label>Booking Method:</label>
+                <div class="booking-options">
+                    <label>
+                        <input type="radio" name="bookingMethod" value="online" checked>
+                        <span>Online</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="bookingMethod" value="offline">
+                        <span>Offline</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="bookingMethod" value="walkin">
+                        <span>Walk-in</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="total-section">
+                <h2>Total: ₹<span id="totalAmount">0</span></h2>
+            </div>
+            
+            <div class="payment-buttons">
+                <button class="btn-paynow" onclick="showPayNow()">PayNow</button>
+                <button class="btn-print" onclick="printBill()">Print Bill</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- PayNow Modal -->
+    <div id="payNowModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>PayNow</h2>
+            <div class="qr-container">
+                <div id="qrCode"></div>
+                <p id="upiId" style="margin-top: 15px; font-size: 16px; color: #333;">UPI ID: <span id="upiIdValue" style="font-weight: bold; color: #667eea;"></span></p>
+                <p style="margin-top: 10px; color: #666; font-size: 16px; font-weight: 600;">Amount: ₹<span id="paymentAmount" style="color: #667eea; font-size: 18px;">0</span></p>
+            </div>
+            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 20px; text-align: left;">
+                <p style="color: #333; font-size: 14px; margin-bottom: 10px; font-weight: 600;"><strong>Instructions:</strong></p>
+                <ol style="color: #666; font-size: 13px; margin-left: 20px; padding-left: 0; line-height: 1.8;">
+                    <li>Customer scans the QR code above</li>
+                    <li>Customer pays via UPI app (PhonePe, Google Pay, Paytm, etc.)</li>
+                    <li>Wait for payment confirmation</li>
+                    <li>Scroll down and click "Mark Payment Completed" button below</li>
+                </ol>
+            </div>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #f0f0f0;">
+                <button class="btn-paynow" id="completePayment" style="width: 100%; font-size: 16px; padding: 14px; font-weight: 600; box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);" onclick="completePayment()">Mark Payment Completed</button>
+                <p style="margin-top: 10px; color: #999; font-size: 12px;">Click this button after customer completes payment</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bill Print View -->
+    <div id="billPrintView" class="bill-print">
+        <div class="bill-header">
+            <h2 id="billMerchantName">CTC Sports Club</h2>
+            <p>Bill No: <span id="billNumber"></span></p>
+            <p>Date: <span id="billDate"></span></p>
+            <div id="billInfo"></div>
+        </div>
+        <table class="bill-table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody id="billItems">
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3"><strong>Grand Total</strong></td>
+                    <td><strong>₹<span id="billTotal">0</span></strong></td>
+                </tr>
+            </tfoot>
+        </table>
+        <div class="bill-footer">
+            <p>Thank you for your visit!</p>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="firebase-service.js"></script>
+    
+    <script>
+        let cart = [];
+        let selectedSport = '';
+        let selectedCourt = null;
+        let bookingMethod = 'online';
+        let billCounter = 1;
+        let settings = {};
+        
+        // Check auth
+        (async function() {
+            if (window.firebaseService && firebaseService.isEnabled()) {
+                const isAuth = await firebaseService.checkFirebaseAuth();
+                if (!isAuth) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+            } else if (localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Load cart from session
+            const cartData = sessionStorage.getItem('cart');
+            if (!cartData || cartData === '[]') {
+                window.location.href = 'sports-selection.html';
+                return;
+            }
+            
+            cart = JSON.parse(cartData);
+            selectedSport = sessionStorage.getItem('selectedSport') || localStorage.getItem('selectedSport') || 'Badminton';
+            const courtData = sessionStorage.getItem('selectedCourt');
+            if (courtData) {
+                selectedCourt = JSON.parse(courtData);
+            }
+            
+            // Load settings
+            if (window.firebaseService && firebaseService.isEnabled()) {
+                settings = await firebaseService.loadSettingsFromFirebase();
+            } else {
+                const stored = localStorage.getItem('settings');
+                settings = stored ? JSON.parse(stored) : {
+                    upiId: 'merchant@upi',
+                    merchantName: 'CTC Sports Club',
+                    qrImagePath: ''
+                };
+            }
+            
+            renderCart();
+            
+            // Set initial booking method
+            const initialMethod = document.querySelector('input[name="bookingMethod"]:checked');
+            if (initialMethod) {
+                bookingMethod = initialMethod.value;
+            }
+            
+            // Booking method change
+            document.querySelectorAll('input[name="bookingMethod"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    bookingMethod = this.value;
+                    console.log('Booking method changed to:', bookingMethod);
+                });
+            });
+        })();
+        
+        function renderCart() {
+            const container = document.getElementById('cartItems');
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            document.getElementById('totalAmount').textContent = total.toFixed(2);
+            
+            if (cart.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Cart is empty</p>';
+                return;
+            }
+            
+            container.innerHTML = cart.map(item => `
+                <div class="cart-item">
+                    <div class="cart-item-info">
+                        <h3>${item.name}</h3>
+                        <div class="item-details">Quantity: ${item.quantity} × ₹${item.price}</div>
+                    </div>
+                    <div class="cart-item-price">₹${(item.price * item.quantity).toFixed(2)}</div>
+                </div>
+            `).join('');
+        }
+        
+        function showPayNow() {
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            if (total === 0) {
+                alert('Cart is empty!');
+                return;
+            }
+            
+            const qrContainer = document.getElementById('qrCode');
+            qrContainer.innerHTML = '';
+            
+            // Check if static QR image is configured
+            if (settings.qrImagePath && settings.qrImagePath.trim() !== '') {
+                const img = document.createElement('img');
+                img.src = settings.qrImagePath;
+                img.alt = 'Payment QR Code';
+                img.style.width = '200px';
+                img.style.height = '200px';
+                img.onerror = function() {
+                    qrContainer.innerHTML = '<p style="color: red; padding: 20px;">QR Image not found. Please check the image path in settings.</p>';
+                };
+                qrContainer.appendChild(img);
+            } else {
+                // Generate QR code dynamically
+                if (typeof QRCode !== 'undefined') {
+                    const upiString = `upi://pay?pa=${settings.upiId}&pn=${encodeURIComponent(settings.merchantName)}&am=${total.toFixed(2)}&cu=INR`;
+                    const canvas = document.createElement('canvas');
+                    qrContainer.appendChild(canvas);
+                    
+                    QRCode.toCanvas(canvas, upiString, {
+                        width: 200,
+                        margin: 2,
+                        color: {
+                            dark: '#000000',
+                            light: '#FFFFFF'
+                        }
+                    }, function (error) {
+                        if (error) {
+                            qrContainer.innerHTML = '<p style="color: red; padding: 20px;">QR Code generation failed.</p>';
+                        }
+                    });
+                } else {
+                    qrContainer.innerHTML = '<p style="color: orange; padding: 20px;">QR Code library not loaded. Please add a static QR image in Menu Management → Settings.</p>';
+                }
+            }
+            
+            document.getElementById('upiIdValue').textContent = settings.upiId;
+            document.getElementById('paymentAmount').textContent = total.toFixed(2);
+            document.getElementById('payNowModal').style.display = 'block';
+        }
+        
+        function closeModal() {
+            document.getElementById('payNowModal').style.display = 'none';
+        }
+        
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('payNowModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+        
+        async function completePayment() {
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            if (!confirm(`Mark payment as completed?\n\nTotal Amount: ₹${total.toFixed(2)}\nBooking Method: ${bookingMethod}\n\nThis will save the transaction to Sales Report.`)) {
+                return;
+            }
+            
+            // Save transaction
+            const transaction = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                items: [...cart],
+                total: total,
+                sport: selectedSport,
+                bookingMethod: bookingMethod,
+                court: selectedCourt ? selectedCourt.name : 'N/A'
+            };
+            
+            // Save to Firebase or localStorage
+            if (window.firebaseService && firebaseService.isEnabled()) {
+                await firebaseService.saveTransactionToFirebase(transaction);
+            } else {
+                const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+                transactions.push(transaction);
+                localStorage.setItem('transactions', JSON.stringify(transactions));
+            }
+            
+            // Clear session
+            sessionStorage.removeItem('cart');
+            sessionStorage.removeItem('selectedCourt');
+            sessionStorage.removeItem('selectedSport');
+            
+            // Show success and redirect
+            alert(`✅ Payment Completed Successfully!\n\nAmount: ₹${total.toFixed(2)}\nBill No: BILL-${String(transaction.id).slice(-4).padStart(4, '0')}\n\n✅ Entry added to Sales Report`);
+            
+            window.location.href = 'sports-selection.html';
+        }
+        
+        function printBill() {
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const now = new Date();
+            
+            document.getElementById('billMerchantName').textContent = settings.merchantName || 'CTC Sports Club';
+            document.getElementById('billNumber').textContent = `BILL-${String(billCounter).padStart(4, '0')}`;
+            document.getElementById('billDate').textContent = now.toLocaleString('en-IN');
+            
+            const billInfo = document.getElementById('billInfo');
+            if (billInfo) {
+                billInfo.innerHTML = `
+                    <p>Sport: <strong>${selectedSport}</strong></p>
+                    <p>Court: <strong>${selectedCourt ? selectedCourt.name : 'N/A'}</strong></p>
+                    <p>Booking Method: <strong>${bookingMethod}</strong></p>
+                `;
+            }
+            
+            const billItemsHtml = cart.map(item => `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>${item.quantity}</td>
+                    <td>₹${item.price}</td>
+                    <td>₹${(item.price * item.quantity).toFixed(2)}</td>
+                </tr>
+            `).join('');
+            
+            document.getElementById('billItems').innerHTML = billItemsHtml;
+            document.getElementById('billTotal').textContent = total.toFixed(2);
+            
+            const printView = document.getElementById('billPrintView');
+            printView.style.display = 'block';
+            
+            window.print();
+            
+            setTimeout(() => {
+                printView.style.display = 'none';
+            }, 1000);
+            
+            billCounter++;
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                if (window.firebaseService && firebaseService.isEnabled()) {
+                    firebaseService.firebaseLogout();
+                } else {
+                    localStorage.removeItem('isLoggedIn');
+                    localStorage.removeItem('username');
+                }
+                window.location.href = 'login.html';
+            }
+        }
+    </script>
+</body>
+</html>
+

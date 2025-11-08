@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTC Sports Club Badminton Billing System</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // Check if QRCode library loaded
+        window.addEventListener('load', function() {
+            if (typeof QRCode === 'undefined') {
+                console.error('QRCode library failed to load');
+            } else {
+                console.log('QRCode library loaded successfully');
+            }
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <h1>CTC Sports Club Billing System</h1>
+        <nav>
+            <a href="sports-selection.html">Choose Sport</a>
+            <a href="index.html" class="active">Billing</a>
+            <a href="sales-report.html">Sales Report</a>
+            <a href="menu-manager.html">Manage Menu</a>
+            <a href="#" onclick="logout(); return false;" style="color: #ff4757;">Logout</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="menu-section">
+            <div class="booking-method-section" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Booking Method:</label>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <input type="radio" name="bookingMethod" value="online" onchange="setBookingMethod('online')">
+                        <span>Online</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <input type="radio" name="bookingMethod" value="offline" onchange="setBookingMethod('offline')">
+                        <span>Offline</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <input type="radio" name="bookingMethod" value="walkin" onchange="setBookingMethod('walkin')" checked>
+                        <span>Walk-in</span>
+                    </label>
+                </div>
+            </div>
+            <div class="category-tabs">
+                <button class="tab-btn active" data-category="Badminton">Badminton</button>
+                <button class="tab-btn" data-category="Cricket">Cricket</button>
+                <button class="tab-btn" data-category="Pickleball">Pickleball</button>
+                <button class="tab-btn" data-category="Beverages">Beverages</button>
+            </div>
+
+            <div class="menu-items" id="menuItems">
+                <!-- Menu items will be dynamically loaded here -->
+            </div>
+        </div>
+
+        <div class="cart-section">
+            <div class="cart-header">
+                <h2>Cart</h2>
+                <button class="clear-cart-btn" id="clearCart">Clear Cart</button>
+            </div>
+            <div class="cart-items" id="cartItems">
+                <p class="empty-cart">Cart is empty</p>
+            </div>
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <strong>Total: ₹<span id="cartTotal">0</span></strong>
+                </div>
+                <div class="cart-actions">
+                    <button class="btn btn-primary" id="payNowBtn">PayNow</button>
+                    <button class="btn btn-secondary" id="printBillBtn">Print Bill</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- PayNow Modal -->
+    <div id="payNowModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>PayNow</h2>
+            <div class="qr-container">
+                <div id="qrCode"></div>
+                <p id="upiId" style="margin-top: 15px; font-size: 16px; color: #333;">UPI ID: <span id="upiIdValue" style="font-weight: bold; color: #667eea;"></span></p>
+                <p style="margin-top: 10px; color: #666; font-size: 16px; font-weight: 600;">Amount: ₹<span id="paymentAmount" style="color: #667eea; font-size: 18px;">0</span></p>
+            </div>
+            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 20px; text-align: left;">
+                <p style="color: #333; font-size: 14px; margin-bottom: 10px; font-weight: 600;"><strong>Instructions:</strong></p>
+                <ol style="color: #666; font-size: 13px; margin-left: 20px; padding-left: 0; line-height: 1.8;">
+                    <li>Customer scans the QR code above</li>
+                    <li>Customer pays via UPI app (PhonePe, Google Pay, Paytm, etc.)</li>
+                    <li>Wait for payment confirmation</li>
+                    <li>Scroll down and click "Mark Payment Completed" button below</li>
+                </ol>
+            </div>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #f0f0f0;">
+                <button class="btn btn-primary" id="completePayment" style="width: 100%; font-size: 16px; padding: 14px; font-weight: 600; box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);">Mark Payment Completed</button>
+                <p style="margin-top: 10px; color: #999; font-size: 12px;">Click this button after customer completes payment</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bill Print View -->
+    <div id="billPrintView" class="bill-print">
+        <div class="bill-header">
+            <h2 id="billMerchantName">CTC Sports Club</h2>
+            <p>Bill No: <span id="billNumber"></span></p>
+            <p>Date: <span id="billDate"></span></p>
+            <div id="billInfo"></div>
+        </div>
+        <table class="bill-table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody id="billItems">
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3"><strong>Grand Total</strong></td>
+                    <td><strong>₹<span id="billTotal">0</span></strong></td>
+                </tr>
+            </tfoot>
+        </table>
+        <div class="bill-footer">
+            <p>Thank you for your visit!</p>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Firebase Config -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- Firebase Service -->
+    <script src="firebase-service.js"></script>
+    
+    <script src="script.js"></script>
+</body>
+</html>

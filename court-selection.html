@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Court - CTC Sports Club</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .court-selection-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .sport-header {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            margin-bottom: 25px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .sport-header h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .sport-header .back-btn {
+            position: absolute;
+            left: 25px;
+            top: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            z-index: 10;
+        }
+        
+        .sport-header .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(102, 126, 234, 0.4);
+        }
+        
+        .sport-header h1 {
+            padding-left: 0;
+            padding-right: 0;
+            margin: 0 auto;
+            width: fit-content;
+            padding-top: 60px;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .sport-header p {
+            margin-top: 10px;
+            margin-bottom: 0;
+        }
+        
+        .courts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .court-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .court-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            transition: left 0.5s;
+        }
+        
+        .court-card:hover::before {
+            left: 100%;
+        }
+        
+        .court-card:hover {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+        
+        .court-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8edff 100%);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .court-card h2 {
+            color: #667eea;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .court-card .price {
+            color: #333;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .continue-btn {
+            margin-top: 30px;
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            display: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .continue-btn.show {
+            display: block;
+        }
+        
+        .continue-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+        
+        .continue-btn:active {
+            transform: translateY(-1px);
+        }
+        
+        @media (max-width: 768px) {
+            .sport-header {
+                padding: 20px 15px 20px 15px;
+            }
+            
+            .sport-header .back-btn {
+                left: 15px;
+                top: 15px;
+                padding: 8px 14px;
+                font-size: 14px;
+            }
+            
+            .sport-header h1 {
+                font-size: 22px;
+                padding-top: 60px;
+                margin-bottom: 8px;
+            }
+            
+            .sport-header p {
+                margin-top: 8px;
+            }
+            
+            .courts-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .court-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>CTC Sports Club Billing System</h1>
+        <nav>
+            <a href="sports-selection.html">Choose Sport</a>
+            <a href="#" onclick="logout(); return false;" style="color: #ff4757;">Logout</a>
+        </nav>
+    </header>
+
+    <main class="court-selection-container">
+        <div class="sport-header" style="position: relative;">
+            <a href="sports-selection.html" class="back-btn">← Back</a>
+            <h1 id="sportName">Badminton</h1>
+            <p style="color: #666;">Select Court Number</p>
+        </div>
+        
+        <div class="courts-grid" id="courtsGrid">
+            <!-- Courts will be loaded here -->
+        </div>
+        
+        <button class="continue-btn" id="continueBtn" onclick="continueToEquipment()">Continue to Equipment →</button>
+    </main>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="firebase-service.js"></script>
+    
+    <script>
+        let selectedSport = '';
+        let selectedCourt = null;
+        let menuItems = [];
+        
+        // Check auth
+        (async function() {
+            if (window.firebaseService && firebaseService.isEnabled()) {
+                const isAuth = await firebaseService.checkFirebaseAuth();
+                if (!isAuth) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+            } else if (localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Load sport from localStorage
+            selectedSport = localStorage.getItem('selectedSport') || 'Badminton';
+            if (!selectedSport) {
+                window.location.href = 'sports-selection.html';
+                return;
+            }
+            
+            document.getElementById('sportName').textContent = selectedSport;
+            await loadCourts();
+        })();
+        
+        async function loadCourts() {
+            // Load menu items
+            if (window.firebaseService && firebaseService.isEnabled()) {
+                menuItems = await firebaseService.loadMenuItemsFromFirebase();
+            } else {
+                const stored = localStorage.getItem('menuItems');
+                menuItems = stored ? JSON.parse(stored) : [];
+            }
+            
+            // Filter courts for selected sport
+            const courts = menuItems.filter(item => 
+                item.category === selectedSport && 
+                item.name.toLowerCase().includes('court')
+            );
+            
+            const grid = document.getElementById('courtsGrid');
+            
+            if (courts.length === 0) {
+                // If no courts, skip directly to equipment
+                grid.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No courts available for ' + selectedSport + '</p><p style="text-align: center; color: #666; margin-top: 20px;">You can add courts later in Menu Management</p>';
+                // Auto-continue to equipment after 2 seconds
+                setTimeout(() => {
+                    sessionStorage.setItem('selectedCourt', JSON.stringify({ id: 0, name: 'N/A' }));
+                    sessionStorage.setItem('selectedSport', selectedSport);
+                    sessionStorage.setItem('cart', JSON.stringify([]));
+                    window.location.href = 'equipment-selection.html';
+                }, 2000);
+                return;
+            }
+            
+            grid.innerHTML = courts.map(court => `
+                <div class="court-card" onclick="selectCourt(${court.id}, '${court.name}')" id="court-${court.id}">
+                    <h2>${court.name}</h2>
+                    <div class="price">₹${court.price}</div>
+                </div>
+            `).join('');
+        }
+        
+        function selectCourt(courtId, courtName) {
+            // Remove previous selection
+            document.querySelectorAll('.court-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selection
+            const card = document.getElementById('court-' + courtId);
+            card.classList.add('selected');
+            
+            selectedCourt = { id: courtId, name: courtName };
+            
+            // Show continue button
+            document.getElementById('continueBtn').classList.add('show');
+        }
+        
+        function continueToEquipment() {
+            if (!selectedCourt) {
+                alert('Please select a court first');
+                return;
+            }
+            
+            // Save selected court to session
+            sessionStorage.setItem('selectedCourt', JSON.stringify(selectedCourt));
+            sessionStorage.setItem('selectedSport', selectedSport);
+            
+            // Initialize cart with court
+            const cart = [{
+                id: selectedCourt.id,
+                name: selectedCourt.name,
+                price: menuItems.find(m => m.id === selectedCourt.id)?.price || 300,
+                quantity: 1
+            }];
+            sessionStorage.setItem('cart', JSON.stringify(cart));
+            
+            window.location.href = 'equipment-selection.html';
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                if (window.firebaseService && firebaseService.isEnabled()) {
+                    firebaseService.firebaseLogout();
+                } else {
+                    localStorage.removeItem('isLoggedIn');
+                    localStorage.removeItem('username');
+                }
+                window.location.href = 'login.html';
+            }
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Report - CTC Badminton Billing System</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Firebase Config -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- Firebase Service -->
+    <script src="firebase-service.js"></script>
+    <style>
+        .report-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .report-header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .filter-group select,
+        .filter-group input[type="date"] {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .filter-group input[type="date"] {
+            min-width: 150px;
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .summary-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .summary-card h3 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .summary-card .value {
+            color: #667eea;
+            font-size: 32px;
+            font-weight: bold;
+        }
+        
+        .report-table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+        
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .report-table th,
+        .report-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .report-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .report-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .item-breakdown {
+            margin-top: 20px;
+        }
+        
+        .item-breakdown h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        .charts-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chart-container h3 {
+            margin-bottom: 15px;
+            color: #333;
+            text-align: center;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+        
+        @media (max-width: 768px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-wrapper {
+                height: 250px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .report-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .report-header h2 {
+                font-size: 20px;
+                text-align: center;
+            }
+            
+            .filter-group {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            .filter-group select,
+            .filter-group input[type="date"] {
+                flex: 1;
+                min-width: 120px;
+            }
+            
+            .filter-group > div > div {
+                width: 100%;
+            }
+            
+            .filter-group label {
+                font-size: 12px;
+                white-space: nowrap;
+            }
+            
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .summary-card .value {
+                font-size: 24px;
+            }
+            
+            .report-table-container {
+                padding: 10px;
+                overflow-x: auto;
+            }
+            
+            .report-table {
+                font-size: 12px;
+            }
+            
+            .report-table th,
+            .report-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>CTC Sports Club Badminton Billing System</h1>
+        <nav>
+            <a href="sports-selection.html">Choose Sport</a>
+            <a href="index.html">Billing</a>
+            <a href="sales-report.html" class="active">Sales Report</a>
+            <a href="menu-manager.html">Manage Menu</a>
+            <a href="#" onclick="logout(); return false;" style="color: #ff4757;">Logout</a>
+        </nav>
+    </header>
+
+    <main class="report-container">
+        <div class="report-header">
+            <h2>Sales Report</h2>
+            <div class="filter-group">
+                <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <label>From Date:</label>
+                        <input type="date" id="fromDate" style="padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                        <label>To Date:</label>
+                        <input type="date" id="toDate" style="padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <label>Month:</label>
+                        <select id="monthSelect">
+                            <option value="">All Months</option>
+                        </select>
+                        <label>Year:</label>
+                        <select id="yearSelect">
+                            <option value="">All Years</option>
+                        </select>
+                        <label>Item:</label>
+                        <select id="itemSelect">
+                            <option value="">All Items</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-primary" onclick="filterReport()">Filter</button>
+                        <button class="btn btn-secondary" onclick="exportToExcel()">Export to Excel</button>
+                        <button class="btn btn-secondary" onclick="clearFilters()" style="background: #95a5a6;">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="summary-cards">
+            <div class="summary-card">
+                <h3>Total Revenue</h3>
+                <div class="value" id="totalRevenue">₹0</div>
+            </div>
+            <div class="summary-card">
+                <h3>Total Transactions</h3>
+                <div class="value" id="totalTransactions">0</div>
+            </div>
+        </div>
+
+        <div class="report-table-container">
+            <h3>Transaction Details</h3>
+            <table class="report-table" id="transactionsTable">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Bill No</th>
+                        <th>Sport</th>
+                        <th>Booking Method</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionsBody">
+                    <tr>
+                        <td colspan="6" class="no-data">No transactions found</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="charts-section">
+            <div class="chart-container">
+                <h3>Revenue by Sport</h3>
+                <div class="chart-wrapper">
+                    <canvas id="sportChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-container">
+                <h3>Revenue by Booking Method</h3>
+                <div class="chart-wrapper">
+                    <canvas id="bookingMethodChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-container">
+                <h3>Daily Revenue Trend</h3>
+                <div class="chart-wrapper">
+                    <canvas id="dailyTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="report-table-container item-breakdown">
+            <h3>Item-wise Sales</h3>
+            <table class="report-table" id="itemsTable">
+                <thead>
+                    <tr>
+                        <th>Item Name</th>
+                        <th>Category</th>
+                        <th>Quantity Sold</th>
+                        <th>Total Revenue</th>
+                    </tr>
+                </thead>
+                <tbody id="itemsBody">
+                    <tr>
+                        <td colspan="4" class="no-data">No data available</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        let allTransactions = [];
+        let filteredTransactions = [];
+
+        async function loadTransactions() {
+            if (window.firebaseService && firebaseService.isEnabled()) {
+                allTransactions = await firebaseService.loadTransactionsFromFirebase();
+            } else {
+                allTransactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+            }
+            filteredTransactions = [...allTransactions].reverse(); // Most recent first
+            populateFilters();
+            renderReport();
+        }
+
+        function populateFilters() {
+            const months = new Set();
+            const years = new Set();
+            const items = new Set();
+            
+            allTransactions.forEach(trans => {
+                const date = new Date(trans.date);
+                months.add(date.getMonth() + 1);
+                years.add(date.getFullYear());
+                
+                // Collect all unique items
+                trans.items.forEach(item => {
+                    items.add(item.name);
+                });
+            });
+            
+            const monthSelect = document.getElementById('monthSelect');
+            const yearSelect = document.getElementById('yearSelect');
+            const itemSelect = document.getElementById('itemSelect');
+            
+            // Populate months
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+            Array.from(months).sort().forEach(month => {
+                const option = document.createElement('option');
+                option.value = month;
+                option.textContent = monthNames[month - 1];
+                monthSelect.appendChild(option);
+            });
+            
+            // Populate years
+            Array.from(years).sort((a, b) => b - a).forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelect.appendChild(option);
+            });
+            
+            // Populate items
+            Array.from(items).sort().forEach(itemName => {
+                const option = document.createElement('option');
+                option.value = itemName;
+                option.textContent = itemName;
+                itemSelect.appendChild(option);
+            });
+        }
+
+        function filterReport() {
+            const selectedMonth = document.getElementById('monthSelect').value;
+            const selectedYear = document.getElementById('yearSelect').value;
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            const selectedItem = document.getElementById('itemSelect').value;
+            
+            filteredTransactions = allTransactions.filter(trans => {
+                const transDate = new Date(trans.date);
+                const month = transDate.getMonth() + 1;
+                const year = transDate.getFullYear();
+                const transDateOnly = new Date(transDate.getFullYear(), transDate.getMonth(), transDate.getDate());
+                
+                // Date range filter (day-wise)
+                if (fromDate) {
+                    const from = new Date(fromDate);
+                    from.setHours(0, 0, 0, 0);
+                    if (transDateOnly < from) return false;
+                }
+                
+                if (toDate) {
+                    const to = new Date(toDate);
+                    to.setHours(23, 59, 59, 999);
+                    const toDateOnly = new Date(to.getFullYear(), to.getMonth(), to.getDate());
+                    if (transDateOnly > toDateOnly) return false;
+                }
+                
+                // Month/Year filter
+                if (selectedMonth && month != selectedMonth) return false;
+                if (selectedYear && year != selectedYear) return false;
+                
+                // Item filter
+                if (selectedItem) {
+                    const hasItem = trans.items.some(item => item.name === selectedItem);
+                    if (!hasItem) return false;
+                }
+                
+                return true;
+            }).reverse();
+            
+            renderReport();
+        }
+        
+        function clearFilters() {
+            document.getElementById('fromDate').value = '';
+            document.getElementById('toDate').value = '';
+            document.getElementById('monthSelect').value = '';
+            document.getElementById('yearSelect').value = '';
+            document.getElementById('itemSelect').value = '';
+            filterReport();
+        }
+
+        let sportChart = null;
+        let bookingMethodChart = null;
+        let dailyTrendChart = null;
+
+        function renderReport() {
+            renderSummary();
+            renderTransactions();
+            renderItemBreakdown();
+            renderCharts();
+        }
+        
+        function renderCharts() {
+            // Destroy existing charts if they exist
+            if (sportChart) sportChart.destroy();
+            if (bookingMethodChart) bookingMethodChart.destroy();
+            if (dailyTrendChart) dailyTrendChart.destroy();
+            
+            if (filteredTransactions.length === 0) {
+                return;
+            }
+            
+            // Revenue by Sport
+            const sportRevenue = {};
+            filteredTransactions.forEach(trans => {
+                const sport = trans.sport || 'Unknown';
+                sportRevenue[sport] = (sportRevenue[sport] || 0) + trans.total;
+            });
+            
+            const sportCtx = document.getElementById('sportChart');
+            if (sportCtx) {
+                sportChart = new Chart(sportCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(sportRevenue),
+                        datasets: [{
+                            label: 'Revenue (₹)',
+                            data: Object.values(sportRevenue),
+                            backgroundColor: [
+                                'rgba(102, 126, 234, 0.8)',
+                                'rgba(72, 219, 251, 0.8)',
+                                'rgba(255, 71, 87, 0.8)',
+                                'rgba(255, 193, 7, 0.8)',
+                                'rgba(76, 175, 80, 0.8)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.label + ': ₹' + context.parsed.toFixed(2);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Revenue by Booking Method
+            const bookingRevenue = {};
+            filteredTransactions.forEach(trans => {
+                const method = trans.bookingMethod || 'Unknown';
+                bookingRevenue[method] = (bookingRevenue[method] || 0) + trans.total;
+            });
+            
+            const bookingCtx = document.getElementById('bookingMethodChart');
+            if (bookingCtx) {
+                bookingMethodChart = new Chart(bookingCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(bookingRevenue),
+                        datasets: [{
+                            label: 'Revenue (₹)',
+                            data: Object.values(bookingRevenue),
+                            backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                            borderColor: 'rgba(102, 126, 234, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return '₹' + context.parsed.y.toFixed(2);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '₹' + value.toFixed(0);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Daily Revenue Trend
+            const dailyRevenue = {};
+            filteredTransactions.forEach(trans => {
+                const date = new Date(trans.date);
+                const dateKey = date.toISOString().split('T')[0]; // Use YYYY-MM-DD for sorting
+                dailyRevenue[dateKey] = (dailyRevenue[dateKey] || 0) + trans.total;
+            });
+            
+            const sortedDates = Object.keys(dailyRevenue).sort();
+            const formattedDates = sortedDates.map(date => {
+                const d = new Date(date);
+                return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+            });
+            
+            const trendCtx = document.getElementById('dailyTrendChart');
+            if (trendCtx) {
+                dailyTrendChart = new Chart(trendCtx, {
+                    type: 'line',
+                    data: {
+                        labels: formattedDates,
+                        datasets: [{
+                            label: 'Daily Revenue (₹)',
+                            data: sortedDates.map(date => dailyRevenue[date]),
+                            borderColor: 'rgba(102, 126, 234, 1)',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return '₹' + context.parsed.y.toFixed(2);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '₹' + value.toFixed(0);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function renderSummary() {
+            const totalRevenue = filteredTransactions.reduce((sum, trans) => sum + trans.total, 0);
+            const totalTransactions = filteredTransactions.length;
+            
+            document.getElementById('totalRevenue').textContent = `₹${totalRevenue.toFixed(2)}`;
+            document.getElementById('totalTransactions').textContent = totalTransactions;
+        }
+
+        function renderTransactions() {
+            const tbody = document.getElementById('transactionsBody');
+            
+            if (filteredTransactions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="no-data">No transactions found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = filteredTransactions.map((trans, index) => {
+                const date = new Date(trans.date);
+                const dateStr = date.toLocaleString('en-IN');
+                const itemsList = trans.items.map(item => `${item.name} (${item.quantity})`).join(', ');
+                const sport = trans.sport || 'N/A';
+                const bookingMethod = trans.bookingMethod || 'N/A';
+                
+                return `
+                    <tr>
+                        <td>${dateStr}</td>
+                        <td>BILL-${String(trans.id).slice(-4).padStart(4, '0')}</td>
+                        <td>${sport}</td>
+                        <td>${bookingMethod}</td>
+                        <td>${itemsList}</td>
+                        <td>₹${trans.total.toFixed(2)}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderItemBreakdown() {
+            const itemStats = {};
+            
+            filteredTransactions.forEach(trans => {
+                trans.items.forEach(item => {
+                    if (!itemStats[item.name]) {
+                        itemStats[item.name] = {
+                            name: item.name,
+                            category: getItemCategory(item.name),
+                            quantity: 0,
+                            revenue: 0
+                        };
+                    }
+                    itemStats[item.name].quantity += item.quantity;
+                    itemStats[item.name].revenue += item.price * item.quantity;
+                });
+            });
+            
+            const itemsArray = Object.values(itemStats).sort((a, b) => b.revenue - a.revenue);
+            const tbody = document.getElementById('itemsBody');
+            
+            if (itemsArray.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="no-data">No data available</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = itemsArray.map(item => `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>${item.category}</td>
+                    <td>${item.quantity}</td>
+                    <td>₹${item.revenue.toFixed(2)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function getItemCategory(itemName) {
+            const menuItems = JSON.parse(localStorage.getItem('menuItems') || '[]');
+            const item = menuItems.find(m => m.name === itemName);
+            return item ? item.category : 'Unknown';
+        }
+
+        function exportToExcel() {
+            if (filteredTransactions.length === 0) {
+                alert('No data to export!');
+                return;
+            }
+            
+            // Prepare data for Excel
+            const wsData = [];
+            
+            // Summary
+            const totalRevenue = filteredTransactions.reduce((sum, trans) => sum + trans.total, 0);
+            const totalTransactions = filteredTransactions.length;
+            wsData.push(['Monthly Sales Report']);
+            wsData.push([]);
+            wsData.push(['Total Revenue', `₹${totalRevenue.toFixed(2)}`]);
+            wsData.push(['Total Transactions', totalTransactions]);
+            wsData.push([]);
+            
+            // Transactions - Reorganized for easy filtering: Date, Sport, Booking Method first
+            wsData.push(['Transaction Details']);
+            wsData.push(['Date', 'Sport', 'Booking Method', 'Bill No', 'Items', 'Total']);
+            filteredTransactions.forEach(trans => {
+                const date = new Date(trans.date);
+                const dateOnly = date.toLocaleDateString('en-IN'); // Just date for filtering
+                const itemsList = trans.items.map(item => `${item.name} (${item.quantity})`).join(', ');
+                wsData.push([
+                    dateOnly,
+                    trans.sport || 'N/A',
+                    trans.bookingMethod || 'N/A',
+                    `BILL-${String(trans.id).slice(-4).padStart(4, '0')}`,
+                    itemsList,
+                    trans.total
+                ]);
+            });
+            
+            wsData.push([]);
+            
+            // Item breakdown
+            const itemStats = {};
+            filteredTransactions.forEach(trans => {
+                trans.items.forEach(item => {
+                    if (!itemStats[item.name]) {
+                        itemStats[item.name] = {
+                            name: item.name,
+                            category: getItemCategory(item.name),
+                            quantity: 0,
+                            revenue: 0
+                        };
+                    }
+                    itemStats[item.name].quantity += item.quantity;
+                    itemStats[item.name].revenue += item.price * item.quantity;
+                });
+            });
+            
+            const itemsArray = Object.values(itemStats).sort((a, b) => b.revenue - a.revenue);
+            wsData.push(['Item-wise Sales']);
+            wsData.push(['Item Name', 'Category', 'Quantity Sold', 'Total Revenue']);
+            itemsArray.forEach(item => {
+                wsData.push([item.name, item.category, item.quantity, item.revenue]);
+            });
+            
+            // Create workbook and worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            
+            // Set column widths - optimized for filtering
+            ws['!cols'] = [
+                { wch: 12 },  // Date
+                { wch: 12 },  // Sport
+                { wch: 15 },  // Booking Method
+                { wch: 12 },  // Bill No
+                { wch: 40 },  // Items
+                { wch: 12 }   // Total
+            ];
+            
+            XLSX.utils.book_append_sheet(wb, ws, 'Sales Report');
+            
+            // Generate filename
+            const selectedMonth = document.getElementById('monthSelect').value;
+            const selectedYear = document.getElementById('yearSelect').value;
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            const selectedItem = document.getElementById('itemSelect').value;
+            
+            let filename = 'Sales_Report';
+            
+            // Use date range if provided (priority for day-wise reports)
+            if (fromDate && toDate) {
+                const from = fromDate.split('-').reverse().join('-');
+                const to = toDate.split('-').reverse().join('-');
+                filename = `Sales_Report_${from}_to_${to}`;
+            } else if (fromDate) {
+                const from = fromDate.split('-').reverse().join('-');
+                filename = `Sales_Report_from_${from}`;
+            } else if (toDate) {
+                const to = toDate.split('-').reverse().join('-');
+                filename = `Sales_Report_until_${to}`;
+            } else if (selectedMonth && selectedYear) {
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                filename = `Sales_Report_${monthNames[selectedMonth - 1]}_${selectedYear}`;
+            } else if (selectedYear) {
+                filename = `Sales_Report_${selectedYear}`;
+            }
+            
+            // Add item name if filtered
+            if (selectedItem) {
+                filename += `_${selectedItem.replace(/\s+/g, '_')}`;
+            }
+            
+            // Export
+            XLSX.writeFile(wb, `${filename}.xlsx`);
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                if (window.firebaseService && firebaseService.isEnabled()) {
+                    firebaseService.firebaseLogout();
+                } else {
+                    localStorage.removeItem('isLoggedIn');
+                    localStorage.removeItem('username');
+                }
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check auth
+            if (window.firebaseService && firebaseService.isEnabled()) {
+                const isAuth = await firebaseService.checkFirebaseAuth();
+                if (!isAuth) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                firebaseService.setupRealtimeSync();
+            } else if (localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            await loadTransactions();
+        });
+    </script>
+</body>
+</html>

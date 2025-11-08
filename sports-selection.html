@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Sport - CTC Sports Club Billing System</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .sports-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 120px);
+            padding: 40px 20px;
+        }
+        
+        .sports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            width: 100%;
+        }
+        
+        .sport-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 20px;
+            padding: 35px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .sport-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            transition: left 0.5s;
+        }
+        
+        .sport-card:hover::before {
+            left: 100%;
+        }
+        
+        .sport-card:hover {
+            transform: translateY(-12px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+        
+        .sport-card img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .sport-card h2 {
+            color: #667eea;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .sport-card p {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        @media (max-width: 768px) {
+            .sports-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .sport-card {
+                padding: 20px;
+            }
+            
+            .sport-card img {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>CTC Sports Club Billing System</h1>
+        <nav>
+            <a href="sports-selection.html" class="active">Choose Sport</a>
+            <a href="sales-report.html">Sales Report</a>
+            <a href="menu-manager.html">Manage Menu</a>
+            <a href="#" onclick="logout(); return false;" style="color: #ff4757;">Logout</a>
+        </nav>
+    </header>
+
+    <main class="sports-container">
+        <div class="sports-grid">
+            <div class="sport-card" onclick="selectSport('Badminton')">
+                <img src="images/sports/badminton.jpg" alt="Badminton" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'300\'%3E%3Crect fill=\'%23ddd\' width=\'400\' height=\'300\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\'%3EBadminton%3C/text%3E%3C/svg%3E'">
+                <h2>Badminton</h2>
+                <p>Court booking, equipment rental & beverages</p>
+            </div>
+            
+            <div class="sport-card" onclick="selectSport('Cricket')">
+                <img src="images/sports/cricket.jpg" alt="Cricket" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'300\'%3E%3Crect fill=\'%23ddd\' width=\'400\' height=\'300\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\'%3ECricket%3C/text%3E%3C/svg%3E'">
+                <h2>Cricket</h2>
+                <p>Equipment rental & beverages</p>
+            </div>
+            
+            <div class="sport-card" onclick="selectSport('Pickleball')">
+                <img src="images/sports/pickleball.jpg" alt="Pickleball" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'300\'%3E%3Crect fill=\'%23ddd\' width=\'400\' height=\'300\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\'%3EPickleball%3C/text%3E%3C/svg%3E'">
+                <h2>Pickleball</h2>
+                <p>Court booking, equipment rental & beverages</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Firebase Config -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- Firebase Service -->
+    <script src="firebase-service.js"></script>
+    
+    <script>
+        function selectSport(sport) {
+            localStorage.setItem('selectedSport', sport);
+            // Clear any previous session data
+            sessionStorage.removeItem('cart');
+            sessionStorage.removeItem('selectedCourt');
+            // Redirect to court selection
+            window.location.href = 'court-selection.html';
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                if (window.firebaseService && firebaseService.isEnabled()) {
+                    firebaseService.firebaseLogout();
+                } else {
+                    localStorage.removeItem('isLoggedIn');
+                    localStorage.removeItem('username');
+                }
+                window.location.href = 'login.html';
+            }
+        }
+        
+        // Check authentication
+        (async function() {
+            if (window.firebaseService && firebaseService.isEnabled()) {
+                const isAuth = await firebaseService.checkFirebaseAuth();
+                if (!isAuth) {
+                    window.location.href = 'login.html';
+                }
+            } else if (localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = 'login.html';
+            }
+        })();
+    </script>
+</body>
+</html>
+
