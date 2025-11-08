@@ -603,12 +603,25 @@
             
             // Load cart from session
             const cartData = sessionStorage.getItem('cart');
-            if (!cartData || cartData === '[]') {
+            if (!cartData || cartData === '[]' || cartData.trim() === '') {
+                // Redirect to Choose Sports section if cart is empty
                 window.location.href = './sports-selection.html';
                 return;
             }
             
-            cart = JSON.parse(cartData);
+            try {
+                cart = JSON.parse(cartData);
+                // Additional check: if cart is empty array after parsing, redirect
+                if (!Array.isArray(cart) || cart.length === 0) {
+                    window.location.href = './sports-selection.html';
+                    return;
+                }
+            } catch (e) {
+                // If cart data is invalid, redirect to Choose Sports section
+                console.error('Invalid cart data:', e);
+                window.location.href = './sports-selection.html';
+                return;
+            }
             selectedSport = sessionStorage.getItem('selectedSport') || localStorage.getItem('selectedSport') || 'Badminton';
             const courtData = sessionStorage.getItem('selectedCourt');
             if (courtData) {
