@@ -129,8 +129,8 @@ async function initializeFirebaseData() {
     
     if (!settingsDoc.exists) {
         await db.collection('users').doc(userId).collection('data').doc('settings').set({
-            upiId: 'merchant@upi',
-            merchantName: 'CTC Sports Club',
+            upiId: 'EZE0323912@CUB',
+            merchantName: 'CTC Sports Arena',
             qrImagePath: ''
         });
     }
@@ -174,8 +174,8 @@ async function loadSettingsFromFirebase() {
     if (!firebaseEnabled) {
         const stored = localStorage.getItem('settings');
         return stored ? JSON.parse(stored) : {
-            upiId: 'merchant@upi',
-            merchantName: 'CTC Sports Club',
+            upiId: 'EZE0323912@CUB',
+            merchantName: 'CTC Sports Arena',
             qrImagePath: ''
         };
     }
@@ -191,8 +191,8 @@ async function loadSettingsFromFirebase() {
     }
     
     return {
-        upiId: 'merchant@upi',
-        merchantName: 'CTC Sports Club',
+        upiId: 'EZE0323912@CUB',
+        merchantName: 'CTC Sports Arena',
         qrImagePath: ''
     };
 }

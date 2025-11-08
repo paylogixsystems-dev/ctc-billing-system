@@ -72,8 +72,8 @@ function loadMenuItems() {
 function loadSettings() {
     const stored = localStorage.getItem('settings');
     const settings = stored ? JSON.parse(stored) : {
-        upiId: 'merchant@upi',
-        merchantName: 'CTC Sports Club',
+        upiId: 'EZE0323912@CUB',
+        merchantName: 'CTC Sports Arena',
         qrImagePath: '' // Optional: path to static QR code image
     };
     if (!stored) {
@@ -303,6 +303,9 @@ function showPayNowModal() {
             
             // Create canvas element
             const canvas = document.createElement('canvas');
+            canvas.style.display = 'block';
+            canvas.style.margin = '0 auto';
+            canvas.style.maxWidth = '100%';
             qrContainer.appendChild(canvas);
             
             // Generate QR code with error handling
@@ -320,6 +323,10 @@ function showPayNowModal() {
                         qrContainer.innerHTML = '<p style="color: red; padding: 20px;">QR Code generation failed. Please add a static QR image in settings.</p>';
                     } else {
                         console.log('QR Code generated successfully');
+                        // Ensure canvas is visible on mobile
+                        canvas.style.display = 'block';
+                        canvas.style.margin = '0 auto';
+                        canvas.style.maxWidth = '100%';
                     }
                 });
             } catch (error) {

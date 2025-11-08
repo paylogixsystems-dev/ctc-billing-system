@@ -426,11 +426,21 @@ main {
     height: auto;
 }
 
-#qrCode img {
-    width: 200px;
-    height: 200px;
-    object-fit: contain;
-}
+    #qrCode img {
+        width: 200px;
+        height: 200px;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+    }
+    
+    #qrCode canvas {
+        width: 200px !important;
+        height: 200px !important;
+        max-width: 100%;
+        display: block !important;
+        margin: 0 auto !important;
+    }
 
 #upiId {
     margin-top: 15px;
@@ -627,7 +637,24 @@ main {
     #qrCode img {
         width: 180px !important;
         height: 180px !important;
-        max-width: 100%;
+        max-width: 90% !important;
+        display: block !important;
+        margin: 0 auto !important;
+    }
+    
+    .qr-container {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: 200px !important;
+    }
+    
+    #qrCode {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
     }
     
     .qr-container {
@@ -711,9 +738,26 @@ main {
     
     #qrCode canvas,
     #qrCode img {
-        width: 150px !important;
-        height: 150px !important;
-        max-width: 100%;
+        width: 160px !important;
+        height: 160px !important;
+        max-width: 85% !important;
+        display: block !important;
+        margin: 0 auto !important;
+    }
+    
+    .qr-container {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: 180px !important;
+    }
+    
+    #qrCode {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
     }
     
     .qr-container {

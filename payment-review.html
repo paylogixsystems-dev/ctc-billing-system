@@ -259,6 +259,16 @@
             width: 200px;
             height: 200px;
             object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        #qrCode canvas {
+            width: 200px !important;
+            height: 200px !important;
+            max-width: 100%;
+            display: block;
+            margin: 0 auto;
         }
         
         /* Print Bill Styles */
@@ -356,6 +366,75 @@
                 padding: 20px;
                 margin: 2% auto;
                 max-height: 96vh;
+            }
+            
+            .qr-container {
+                margin: 15px 0;
+                min-height: 200px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            #qrCode {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+                margin: 10px 0;
+            }
+            
+            #qrCode canvas,
+            #qrCode img {
+                width: 180px !important;
+                height: 180px !important;
+                max-width: 90%;
+                display: block;
+                margin: 0 auto;
+            }
+            
+            #upiId {
+                font-size: 14px;
+                margin-top: 10px;
+            }
+            
+            #upiIdValue {
+                font-size: 16px;
+                word-break: break-all;
+            }
+            
+            #paymentAmount {
+                font-size: 16px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .modal-content {
+                width: 98%;
+                padding: 15px;
+                margin: 1% auto;
+                max-height: 98vh;
+            }
+            
+            .qr-container {
+                margin: 10px 0;
+                min-height: 180px;
+            }
+            
+            #qrCode canvas,
+            #qrCode img {
+                width: 160px !important;
+                height: 160px !important;
+                max-width: 85%;
+            }
+            
+            #upiId {
+                font-size: 13px;
+            }
+            
+            #upiIdValue {
+                font-size: 14px;
             }
         }
     </style>
@@ -515,8 +594,8 @@
             } else {
                 const stored = localStorage.getItem('settings');
                 settings = stored ? JSON.parse(stored) : {
-                    upiId: 'merchant@upi',
-                    merchantName: 'CTC Sports Club',
+                    upiId: 'EZE0323912@CUB',
+                    merchantName: 'CTC Sports Arena',
                     qrImagePath: ''
                 };
             }
@@ -578,6 +657,9 @@
                 img.alt = 'Payment QR Code';
                 img.style.width = '200px';
                 img.style.height = '200px';
+                img.style.display = 'block';
+                img.style.margin = '0 auto';
+                img.style.maxWidth = '100%';
                 img.onerror = function() {
                     qrContainer.innerHTML = '<p style="color: red; padding: 20px;">QR Image not found. Please check the image path in settings.</p>';
                 };
@@ -587,6 +669,9 @@
                 if (typeof QRCode !== 'undefined') {
                     const upiString = `upi://pay?pa=${settings.upiId}&pn=${encodeURIComponent(settings.merchantName)}&am=${total.toFixed(2)}&cu=INR`;
                     const canvas = document.createElement('canvas');
+                    canvas.style.display = 'block';
+                    canvas.style.margin = '0 auto';
+                    canvas.style.maxWidth = '100%';
                     qrContainer.appendChild(canvas);
                     
                     QRCode.toCanvas(canvas, upiString, {
@@ -598,7 +683,14 @@
                         }
                     }, function (error) {
                         if (error) {
-                            qrContainer.innerHTML = '<p style="color: red; padding: 20px;">QR Code generation failed.</p>';
+                            console.error('QR Code generation error:', error);
+                            qrContainer.innerHTML = '<p style="color: red; padding: 20px;">QR Code generation failed. Please check console for details.</p>';
+                        } else {
+                            console.log('QR Code generated successfully');
+                            // Ensure canvas is visible on mobile
+                            canvas.style.display = 'block';
+                            canvas.style.margin = '0 auto';
+                            canvas.style.maxWidth = '100%';
                         }
                     });
                 } else {
