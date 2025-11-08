@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Choose Sport - CTC Sports Club Billing System</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="./styles.css">
     <style>
         .sports-container {
             display: flex;
@@ -95,9 +95,9 @@
     <header>
         <h1>CTC Sports Club Billing System</h1>
         <nav>
-            <a href="sports-selection.html" class="active">Choose Sport</a>
-            <a href="sales-report.html">Sales Report</a>
-            <a href="menu-manager.html">Manage Menu</a>
+            <a href="./sports-selection.html" class="active">Choose Sport</a>
+            <a href="./sales-report.html">Sales Report</a>
+            <a href="./menu-manager.html">Manage Menu</a>
             <a href="#" onclick="logout(); return false;" style="color: #ff4757;">Logout</a>
         </nav>
     </header>
@@ -105,19 +105,19 @@
     <main class="sports-container">
         <div class="sports-grid">
             <div class="sport-card" onclick="selectSport('Badminton')">
-                <img src="images/sports/badminton.jpg" alt="Badminton" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'300\'%3E%3Crect fill=\'%23ddd\' width=\'400\' height=\'300\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\'%3EBadminton%3C/text%3E%3C/svg%3E'">
+                <img src="./images/sports/badminton.jpg" alt="Badminton" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'300\'%3E%3Crect fill=\'%23ddd\' width=\'400\' height=\'300\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\'%3EBadminton%3C/text%3E%3C/svg%3E'">
                 <h2>Badminton</h2>
                 <p>Court booking, equipment rental & beverages</p>
             </div>
             
             <div class="sport-card" onclick="selectSport('Cricket')">
-                <img src="images/sports/cricket.jpg" alt="Cricket" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'300\'%3E%3Crect fill=\'%23ddd\' width=\'400\' height=\'300\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\'%3ECricket%3C/text%3E%3C/svg%3E'">
+                <img src="./images/sports/cricket.jpg" alt="Cricket" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'300\'%3E%3Crect fill=\'%23ddd\' width=\'400\' height=\'300\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\'%3ECricket%3C/text%3E%3C/svg%3E'">
                 <h2>Cricket</h2>
                 <p>Equipment rental & beverages</p>
             </div>
             
             <div class="sport-card" onclick="selectSport('Pickleball')">
-                <img src="images/sports/pickleball.jpg" alt="Pickleball" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'300\'%3E%3Crect fill=\'%23ddd\' width=\'400\' height=\'300\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\'%3EPickleball%3C/text%3E%3C/svg%3E'">
+                <img src="./images/sports/pickleball.jpg" alt="Pickleball" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'300\'%3E%3Crect fill=\'%23ddd\' width=\'400\' height=\'300\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\'%3EPickleball%3C/text%3E%3C/svg%3E'">
                 <h2>Pickleball</h2>
                 <p>Court booking, equipment rental & beverages</p>
             </div>
@@ -130,10 +130,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
     <!-- Firebase Config -->
-    <script src="firebase-config.js"></script>
+    <script src="./firebase-config.js"></script>
     
     <!-- Firebase Service -->
-    <script src="firebase-service.js"></script>
+    <script src="./firebase-service.js"></script>
     
     <script>
         function selectSport(sport) {
@@ -142,7 +142,7 @@
             sessionStorage.removeItem('cart');
             sessionStorage.removeItem('selectedCourt');
             // Redirect to court selection
-            window.location.href = 'court-selection.html';
+            window.location.href = './court-selection.html';
         }
         
         function logout() {
@@ -153,7 +153,7 @@
                     localStorage.removeItem('isLoggedIn');
                     localStorage.removeItem('username');
                 }
-                window.location.href = 'login.html';
+                window.location.href = './login.html';
             }
         }
         
@@ -162,10 +162,10 @@
             if (window.firebaseService && firebaseService.isEnabled()) {
                 const isAuth = await firebaseService.checkFirebaseAuth();
                 if (!isAuth) {
-                    window.location.href = 'login.html';
+                    window.location.href = './login.html';
                 }
             } else if (localStorage.getItem('isLoggedIn') !== 'true') {
-                window.location.href = 'login.html';
+                window.location.href = './login.html';
             }
         })();
     </script>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment & Review - CTC Sports Club</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="./styles.css">
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <style>
         .payment-container {
@@ -364,7 +364,7 @@
     <header>
         <h1>CTC Sports Club Billing System</h1>
         <nav>
-            <a href="sports-selection.html">Choose Sport</a>
+            <a href="./sports-selection.html">Choose Sport</a>
             <a href="#" onclick="logout(); return false;" style="color: #ff4757;">Logout</a>
         </nav>
     </header>
@@ -471,8 +471,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="firebase-config.js"></script>
-    <script src="firebase-service.js"></script>
+    <script src="./firebase-config.js"></script>
+    <script src="./firebase-service.js"></script>
     
     <script>
         let cart = [];
@@ -487,18 +487,18 @@
             if (window.firebaseService && firebaseService.isEnabled()) {
                 const isAuth = await firebaseService.checkFirebaseAuth();
                 if (!isAuth) {
-                    window.location.href = 'login.html';
+                    window.location.href = './login.html';
                     return;
                 }
             } else if (localStorage.getItem('isLoggedIn') !== 'true') {
-                window.location.href = 'login.html';
+                window.location.href = './login.html';
                 return;
             }
             
             // Load cart from session
             const cartData = sessionStorage.getItem('cart');
             if (!cartData || cartData === '[]') {
-                window.location.href = 'sports-selection.html';
+                window.location.href = './sports-selection.html';
                 return;
             }
             
@@ -657,7 +657,7 @@
             // Show success and redirect
             alert(`✅ Payment Completed Successfully!\n\nAmount: ₹${total.toFixed(2)}\nBill No: BILL-${String(transaction.id).slice(-4).padStart(4, '0')}\n\n✅ Entry added to Sales Report`);
             
-            window.location.href = 'sports-selection.html';
+            window.location.href = './sports-selection.html';
         }
         
         function printBill() {
@@ -709,7 +709,7 @@
                     localStorage.removeItem('isLoggedIn');
                     localStorage.removeItem('username');
                 }
-                window.location.href = 'login.html';
+                window.location.href = './login.html';
             }
         }
     </script>

@@ -1,7 +1,7 @@
 // Check authentication
 if (window.location.pathname !== '/login.html' && !window.location.pathname.includes('login.html')) {
     if (localStorage.getItem('isLoggedIn') !== 'true') {
-        window.location.href = 'login.html';
+        window.location.href = './login.html';
     }
 }
 
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const selectedSport = localStorage.getItem('selectedSport');
     if (selectedSport && window.location.pathname.includes('index.html')) {
         // Redirect to new step-by-step flow
-        window.location.href = 'court-selection.html';
+        window.location.href = './court-selection.html';
         return;
     }
     
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 function checkSportSelection() {
     const sport = localStorage.getItem('selectedSport');
     if (!sport) {
-        window.location.href = 'sports-selection.html';
+        window.location.href = './sports-selection.html';
     }
 }
 
@@ -492,11 +492,11 @@ async function checkAuth() {
     if (window.firebaseService && firebaseService.isEnabled()) {
         const isAuth = await firebaseService.checkFirebaseAuth();
         if (!isAuth) {
-            window.location.href = 'login.html';
+            window.location.href = './login.html';
         }
     } else {
         if (localStorage.getItem('isLoggedIn') !== 'true') {
-            window.location.href = 'login.html';
+            window.location.href = './login.html';
         }
     }
 }
@@ -509,6 +509,6 @@ function logout() {
             localStorage.removeItem('isLoggedIn');
             localStorage.removeItem('username');
         }
-        window.location.href = 'login.html';
+        window.location.href = './login.html';
     }
 }

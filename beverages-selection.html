@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Beverages Selection - CTC Sports Club</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="./styles.css">
     <style>
         .beverages-container {
             max-width: 800px;
@@ -228,14 +228,14 @@
     <header>
         <h1>CTC Sports Club Billing System</h1>
         <nav>
-            <a href="sports-selection.html">Choose Sport</a>
+            <a href="./sports-selection.html">Choose Sport</a>
             <a href="#" onclick="logout(); return false;" style="color: #ff4757;">Logout</a>
         </nav>
     </header>
 
     <main class="beverages-container">
         <div class="page-header" style="position: relative;">
-            <a href="equipment-selection.html" class="back-btn">← Back</a>
+            <a href="./equipment-selection.html" class="back-btn">← Back</a>
             <h1>Beverages Selection</h1>
             <p style="color: #666;">Any beverages? (Optional)</p>
         </div>
@@ -255,8 +255,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="firebase-config.js"></script>
-    <script src="firebase-service.js"></script>
+    <script src="./firebase-config.js"></script>
+    <script src="./firebase-service.js"></script>
     
     <script>
         let menuItems = [];
@@ -267,11 +267,11 @@
             if (window.firebaseService && firebaseService.isEnabled()) {
                 const isAuth = await firebaseService.checkFirebaseAuth();
                 if (!isAuth) {
-                    window.location.href = 'login.html';
+                    window.location.href = './login.html';
                     return;
                 }
             } else if (localStorage.getItem('isLoggedIn') !== 'true') {
-                window.location.href = 'login.html';
+                window.location.href = './login.html';
                 return;
             }
             
@@ -363,7 +363,7 @@
             });
             
             sessionStorage.setItem('cart', JSON.stringify(cart));
-            window.location.href = 'payment-review.html';
+            window.location.href = './payment-review.html';
         }
         
         function logout() {
@@ -374,7 +374,7 @@
                     localStorage.removeItem('isLoggedIn');
                     localStorage.removeItem('username');
                 }
-                window.location.href = 'login.html';
+                window.location.href = './login.html';
             }
         }
     </script>
