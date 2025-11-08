@@ -74,7 +74,7 @@ function loadSettings() {
     const settings = stored ? JSON.parse(stored) : {
         upiId: 'EZE0323912@CUB',
         merchantName: 'CTC Sports Arena',
-        qrImagePath: '' // Optional: path to static QR code image
+        qrImagePath: './images/CTC SPORTS ARENA-QRCode.png' // QR code image path
     };
     if (!stored) {
         localStorage.setItem('settings', JSON.stringify(settings));
@@ -282,15 +282,25 @@ function showPayNowModal() {
     if (settings.qrImagePath && settings.qrImagePath.trim() !== '') {
         // Use static QR image
         const img = document.createElement('img');
-        img.src = settings.qrImagePath;
+        // Fix path for GitHub Pages (remove .\ and use ./)
+        let imagePath = settings.qrImagePath.replace(/^\.\\/, './').replace(/\\/g, '/');
+        img.src = imagePath;
         img.alt = 'Payment QR Code';
         img.style.width = '200px';
         img.style.height = '200px';
         img.style.border = '5px solid #f0f0f0';
         img.style.borderRadius = '10px';
         img.style.padding = '10px';
+        img.style.display = 'block';
+        img.style.margin = '0 auto';
+        img.style.maxWidth = '100%';
+        img.style.objectFit = 'contain';
         img.onerror = function() {
+            console.error('QR Image not found:', imagePath);
             qrContainer.innerHTML = '<p style="color: red; padding: 20px;">QR Image not found. Please check the image path in settings.</p>';
+        };
+        img.onload = function() {
+            console.log('QR Image loaded successfully:', imagePath);
         };
         qrContainer.appendChild(img);
     } else {

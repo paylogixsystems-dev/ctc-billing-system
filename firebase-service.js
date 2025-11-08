@@ -131,7 +131,7 @@ async function initializeFirebaseData() {
         await db.collection('users').doc(userId).collection('data').doc('settings').set({
             upiId: 'EZE0323912@CUB',
             merchantName: 'CTC Sports Arena',
-            qrImagePath: ''
+            qrImagePath: './images/CTC SPORTS ARENA-QRCode.png'
         });
     }
 }
@@ -176,7 +176,7 @@ async function loadSettingsFromFirebase() {
         return stored ? JSON.parse(stored) : {
             upiId: 'EZE0323912@CUB',
             merchantName: 'CTC Sports Arena',
-            qrImagePath: ''
+            qrImagePath: './images/CTC SPORTS ARENA-QRCode.png'
         };
     }
     
@@ -193,7 +193,7 @@ async function loadSettingsFromFirebase() {
     return {
         upiId: 'EZE0323912@CUB',
         merchantName: 'CTC Sports Arena',
-        qrImagePath: ''
+        qrImagePath: './images/CTC SPORTS ARENA-QRCode.png'
     };
 }
 
