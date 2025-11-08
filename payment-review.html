@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment & Review - CTC Sports Club</title>
+    <title>Payment & Review - CTC Sports Arena</title>
     <link rel="stylesheet" href="./styles.css">
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <style>
@@ -545,7 +545,7 @@
     <!-- Bill Print View -->
     <div id="billPrintView" class="bill-print">
         <div class="bill-header">
-            <h2 id="billMerchantName">CTC Sports Club</h2>
+            <h2 id="billMerchantName">CTC Sports Arena</h2>
             <p>Bill No: <span id="billNumber"></span></p>
             <p>Date: <span id="billDate"></span></p>
             <div id="billInfo"></div>
@@ -799,11 +799,22 @@
             window.location.href = './sports-selection.html';
         }
         
-        function printBill() {
+        async function printBill() {
+            // Reload settings to get latest merchant name
+            let currentSettings = settings;
+            if (window.firebaseService && firebaseService.isEnabled()) {
+                currentSettings = await firebaseService.loadSettingsFromFirebase();
+            } else {
+                const stored = localStorage.getItem('settings');
+                if (stored) {
+                    currentSettings = JSON.parse(stored);
+                }
+            }
+            
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             const now = new Date();
             
-            document.getElementById('billMerchantName').textContent = settings.merchantName || 'CTC Sports Club';
+            document.getElementById('billMerchantName').textContent = currentSettings.merchantName || 'CTC Sports Arena';
             document.getElementById('billNumber').textContent = `BILL-${String(billCounter).padStart(4, '0')}`;
             document.getElementById('billDate').textContent = now.toLocaleString('en-IN');
             

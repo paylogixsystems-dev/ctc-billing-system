@@ -75,19 +75,30 @@ async function loadMenuItems() {
     }
 }
 
-function loadSettings() {
-    const stored = localStorage.getItem('settings');
-    const settings = stored ? JSON.parse(stored) : {
-        upiId: 'EZE0323912@CUB',
-        merchantName: 'CTC Sports Arena',
-        qrImagePath: './images/CTC SPORTS ARENA-QRCode.png' // QR code image path
-    };
-    if (!stored) {
+async function loadSettings() {
+    let settings;
+    if (window.firebaseService && firebaseService.isEnabled()) {
+        settings = await firebaseService.loadSettingsFromFirebase();
+        // Also update localStorage for immediate access
         localStorage.setItem('settings', JSON.stringify(settings));
+    } else {
+        const stored = localStorage.getItem('settings');
+        settings = stored ? JSON.parse(stored) : {
+            upiId: 'EZE0323912@CUB',
+            merchantName: 'CTC Sports Arena',
+            qrImagePath: './images/CTC SPORTS ARENA-QRCode.png' // QR code image path
+        };
+        if (!stored) {
+            localStorage.setItem('settings', JSON.stringify(settings));
+        }
     }
     // Ensure qrImagePath exists even if settings were created before
     if (!settings.qrImagePath) {
         settings.qrImagePath = '';
+    }
+    // Ensure merchantName exists
+    if (!settings.merchantName) {
+        settings.merchantName = 'CTC Sports Arena';
     }
     return settings;
 }
@@ -277,13 +288,13 @@ function renderCart() {
 }
 
 // PayNow Modal
-function showPayNowModal() {
+async function showPayNowModal() {
     if (cart.length === 0) {
         alert('Cart is empty!');
         return;
     }
     
-    const settings = loadSettings();
+    const settings = await loadSettings();
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     
     // Clear previous QR code
@@ -406,13 +417,13 @@ async function completePayment() {
 }
 
 // Print Bill
-function printBill() {
+async function printBill() {
     if (cart.length === 0) {
         alert('Cart is empty!');
         return;
     }
     
-    const settings = loadSettings();
+    const settings = await loadSettings();
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const now = new Date();
     

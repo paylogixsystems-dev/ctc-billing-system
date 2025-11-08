@@ -175,7 +175,7 @@ async function loadSettingsFromFirebase() {
         const stored = localStorage.getItem('settings');
         return stored ? JSON.parse(stored) : {
             upiId: 'EZE0323912@CUB',
-            merchantName: 'CTC Sports Arena',
+            //merchantName: 'CTC Sports Arena',
             qrImagePath: './images/CTC SPORTS ARENA-QRCode.png'
         };
     }
@@ -192,7 +192,7 @@ async function loadSettingsFromFirebase() {
     
     return {
         upiId: 'EZE0323912@CUB',
-        merchantName: 'CTC Sports Arena',
+        //merchantName: 'CTC Sports Arena',
         qrImagePath: './images/CTC SPORTS ARENA-QRCode.png'
     };
 }
