@@ -282,15 +282,19 @@
                     <tr>
                         <th>Date & Time</th>
                         <th>Bill No</th>
+                        <th>Customer Name</th>
                         <th>Sport</th>
-                        <th>Booking Method</th>
+                        <th>Court</th>
+                        <th>Court Timing</th>
+                        <th>Payment Mode</th>
                         <th>Items</th>
                         <th>Total</th>
+                        <th>User</th>
                     </tr>
                 </thead>
                 <tbody id="transactionsBody">
                     <tr>
-                        <td colspan="6" class="no-data">No transactions found</td>
+                        <td colspan="10" class="no-data">No transactions found</td>
                     </tr>
                 </tbody>
             </table>
@@ -637,7 +641,7 @@
             const tbody = document.getElementById('transactionsBody');
             
             if (filteredTransactions.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="no-data">No transactions found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" class="no-data">No transactions found</td></tr>';
                 return;
             }
             
@@ -646,16 +650,39 @@
                 const dateStr = date.toLocaleString('en-IN');
                 const itemsList = trans.items.map(item => `${item.name} (${item.quantity})`).join(', ');
                 const sport = trans.sport || 'N/A';
-                const bookingMethod = trans.bookingMethod || 'N/A';
+                const court = trans.court || 'N/A';
+                const customerName = trans.customerName || 'N/A';
+                const courtTime = trans.courtTime || 'N/A';
+                const hasOnline = trans.hasOnlinePayment || (trans.onlineAmount && trans.onlineAmount > 0);
+                const hasOffline = trans.hasOfflinePayment || (trans.offlineAmount && trans.offlineAmount > 0);
+                const onlineAmount = hasOnline ? (trans.onlineAmount || 0) : 0;
+                const offlineAmount = hasOffline ? (trans.offlineAmount || 0) : 0;
+                const user = trans.user || 'Unknown';
+                
+                // Show only selected payment modes
+                let paymentDisplay = '';
+                if (hasOnline && hasOffline) {
+                    paymentDisplay = `Online: ₹${onlineAmount.toFixed(2)}<br>Offline: ₹${offlineAmount.toFixed(2)}`;
+                } else if (hasOnline) {
+                    paymentDisplay = `Online: ₹${onlineAmount.toFixed(2)}`;
+                } else if (hasOffline) {
+                    paymentDisplay = `Offline: ₹${offlineAmount.toFixed(2)}`;
+                } else {
+                    paymentDisplay = 'N/A';
+                }
                 
                 return `
                     <tr>
                         <td>${dateStr}</td>
                         <td>BILL-${String(trans.id).slice(-4).padStart(4, '0')}</td>
+                        <td>${customerName}</td>
                         <td>${sport}</td>
-                        <td>${bookingMethod}</td>
+                        <td>${court}</td>
+                        <td>${courtTime}</td>
+                        <td>${paymentDisplay}</td>
                         <td>${itemsList}</td>
                         <td>₹${trans.total.toFixed(2)}</td>
+                        <td>${user}</td>
                     </tr>
                 `;
             }).join('');
@@ -721,20 +748,39 @@
             wsData.push(['Total Transactions', totalTransactions]);
             wsData.push([]);
             
-            // Transactions - Reorganized for easy filtering: Date, Sport, Booking Method first
+            // Transactions - Match exact columns from sales report table
             wsData.push(['Transaction Details']);
-            wsData.push(['Date', 'Sport', 'Booking Method', 'Bill No', 'Items', 'Total']);
-            filteredTransactions.forEach(trans => {
+            wsData.push(['S.No', 'Date & Time', 'Bill No', 'Customer Name', 'Sport', 'Court', 'Court Timing', 'Payment Mode', 'Items', 'Total', 'User']);
+            filteredTransactions.forEach((trans, index) => {
                 const date = new Date(trans.date);
-                const dateOnly = date.toLocaleDateString('en-IN'); // Just date for filtering
+                const dateTime = date.toLocaleString('en-IN'); // Combined Date & Time
                 const itemsList = trans.items.map(item => `${item.name} (${item.quantity})`).join(', ');
+                
+                const hasOnline = trans.hasOnlinePayment || (trans.onlineAmount && trans.onlineAmount > 0);
+                const hasOffline = trans.hasOfflinePayment || (trans.offlineAmount && trans.offlineAmount > 0);
+                let paymentMode = '';
+                if (hasOnline && hasOffline) {
+                    paymentMode = `Online: ₹${(trans.onlineAmount || 0).toFixed(2)}, Offline: ₹${(trans.offlineAmount || 0).toFixed(2)}`;
+                } else if (hasOnline) {
+                    paymentMode = `Online: ₹${(trans.onlineAmount || 0).toFixed(2)}`;
+                } else if (hasOffline) {
+                    paymentMode = `Offline: ₹${(trans.offlineAmount || 0).toFixed(2)}`;
+                } else {
+                    paymentMode = 'N/A';
+                }
+                
                 wsData.push([
-                    dateOnly,
-                    trans.sport || 'N/A',
-                    trans.bookingMethod || 'N/A',
-                    `BILL-${String(trans.id).slice(-4).padStart(4, '0')}`,
-                    itemsList,
-                    trans.total
+                    index + 1, // S.No
+                    dateTime, // Date & Time (combined)
+                    `BILL-${String(trans.id).slice(-4).padStart(4, '0')}`, // Bill No
+                    trans.customerName || 'N/A', // Customer Name
+                    trans.sport || 'N/A', // Sport
+                    trans.court || 'N/A', // Court
+                    trans.courtTime || 'N/A', // Court Timing
+                    paymentMode, // Payment Mode
+                    itemsList, // Items
+                    trans.total, // Total
+                    trans.user || 'Unknown' // User
                 ]);
             });
             
@@ -770,12 +816,17 @@
             
             // Set column widths - optimized for filtering
             ws['!cols'] = [
-                { wch: 12 },  // Date
-                { wch: 12 },  // Sport
-                { wch: 15 },  // Booking Method
+                { wch: 6 },   // S.No
+                { wch: 20 },  // Date & Time
                 { wch: 12 },  // Bill No
+                { wch: 20 },  // Customer Name
+                { wch: 12 },  // Sport
+                { wch: 12 },  // Court
+                { wch: 20 },  // Court Timing
+                { wch: 30 },  // Payment Mode
                 { wch: 40 },  // Items
-                { wch: 12 }   // Total
+                { wch: 12 },  // Total
+                { wch: 15 }   // User
             ];
             
             XLSX.utils.book_append_sheet(wb, ws, 'Sales Report');
@@ -830,6 +881,28 @@
         }
 
         // Initialize
+        // Check access control - admin only
+        (async function() {
+            if (window.firebaseService && firebaseService.isEnabled()) {
+                const isAuth = await firebaseService.checkFirebaseAuth();
+                if (!isAuth) {
+                    window.location.href = './login.html';
+                    return;
+                }
+            } else if (localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = './login.html';
+                return;
+            }
+            
+            // Check if user is admin
+            const userRole = localStorage.getItem('userRole') || 'user';
+            if (userRole !== 'admin') {
+                alert('Access denied. This page is only available for administrators.');
+                window.location.href = './sports-selection.html';
+                return;
+            }
+        })();
+        
         document.addEventListener('DOMContentLoaded', async function() {
             // Check auth
             if (window.firebaseService && firebaseService.isEnabled()) {

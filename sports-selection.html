@@ -96,8 +96,8 @@
         <h1>CTC Sports Arena Billing System</h1>
         <nav>
             <a href="./sports-selection.html" class="active">Choose Sport</a>
-            <a href="./sales-report.html">Sales Report</a>
-            <a href="./menu-manager.html">Manage Menu</a>
+            <a href="./sales-report.html" id="salesReportLink" style="display: none;">Sales Report</a>
+            <a href="./menu-manager.html" id="menuManagerLink" style="display: none;">Manage Menu</a>
             <a href="#" onclick="logout(); return false;" style="color: #ff4757;">Logout</a>
         </nav>
     </header>
@@ -157,7 +157,7 @@
             }
         }
         
-        // Check authentication
+        // Check authentication and setup navigation
         (async function() {
             if (window.firebaseService && firebaseService.isEnabled()) {
                 const isAuth = await firebaseService.checkFirebaseAuth();
@@ -169,6 +169,12 @@
                 window.location.href = './login.html';
                 return;
             }
+            
+            // Show/hide admin-only links
+            const userRole = localStorage.getItem('userRole') || 'user';
+            const isAdmin = userRole === 'admin';
+            document.getElementById('salesReportLink').style.display = isAdmin ? 'inline-block' : 'none';
+            document.getElementById('menuManagerLink').style.display = isAdmin ? 'inline-block' : 'none';
             
             // Clear any old sport selection when user lands on this page
             // This ensures user makes a fresh choice and prevents badminton auto-selection

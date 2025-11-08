@@ -491,6 +491,28 @@
         }
 
         // Initialize
+        // Check access control - admin only
+        (async function() {
+            if (window.firebaseService && firebaseService.isEnabled()) {
+                const isAuth = await firebaseService.checkFirebaseAuth();
+                if (!isAuth) {
+                    window.location.href = './login.html';
+                    return;
+                }
+            } else if (localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = './login.html';
+                return;
+            }
+            
+            // Check if user is admin
+            const userRole = localStorage.getItem('userRole') || 'user';
+            if (userRole !== 'admin') {
+                alert('Access denied. This page is only available for administrators.');
+                window.location.href = './sports-selection.html';
+                return;
+            }
+        })();
+        
         document.addEventListener('DOMContentLoaded', async function() {
             // Check auth
             if (window.firebaseService && firebaseService.isEnabled()) {

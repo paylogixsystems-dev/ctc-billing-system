@@ -169,9 +169,16 @@
                     result = await firebaseService.firebaseLogin(username, password);
                 } else {
                     // Fallback if firebaseService not loaded
-                    if (username === 'admin' && password === 'admin123') {
+                    const USER_CREDENTIALS = {
+                        'admin': 'CTC2023',
+                        'CTCUSER1': 'CTC123',
+                        'CTCUSER2': 'CTC1234'
+                    };
+                    
+                    if (USER_CREDENTIALS[username] && USER_CREDENTIALS[username] === password) {
                         localStorage.setItem('isLoggedIn', 'true');
                         localStorage.setItem('username', username);
+                        localStorage.setItem('userRole', username === 'admin' ? 'admin' : 'user');
                         result = { success: true };
                     } else {
                         result = { success: false, error: 'Invalid username or password' };

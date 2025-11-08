@@ -487,21 +487,32 @@
                 <!-- Cart items will be loaded here -->
             </div>
             
-            <div class="booking-method-section">
-                <label>Booking Method:</label>
-                <div class="booking-options">
-                    <label>
-                        <input type="radio" name="bookingMethod" value="online" checked>
-                        <span>Online</span>
+            <div class="payment-mode-section" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                <label style="display: block; margin-bottom: 15px; font-weight: 600; color: #333; font-size: 16px;">Payment Mode:</label>
+                <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px; background: white; border-radius: 8px; border: 2px solid #ddd;">
+                        <input type="checkbox" id="onlinePaymentCheck" style="width: 18px; height: 18px; cursor: pointer;">
+                        <span>Online Payment</span>
                     </label>
-                    <label>
-                        <input type="radio" name="bookingMethod" value="offline">
-                        <span>Offline</span>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px; background: white; border-radius: 8px; border: 2px solid #ddd;">
+                        <input type="checkbox" id="offlinePaymentCheck" style="width: 18px; height: 18px; cursor: pointer;">
+                        <span>Offline Payment</span>
                     </label>
-                    <label>
-                        <input type="radio" name="bookingMethod" value="walkin">
-                        <span>Walk-in</span>
-                    </label>
+                </div>
+                <div id="paymentAmountsContainer" style="display: none;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div id="onlinePaymentDiv" style="display: none;">
+                            <label style="display: block; margin-bottom: 8px; color: #666; font-size: 14px;">Online Payment (₹)</label>
+                            <input type="number" id="onlineAmount" min="0" step="0.01" value="0" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
+                        </div>
+                        <div id="offlinePaymentDiv" style="display: none;">
+                            <label style="display: block; margin-bottom: 8px; color: #666; font-size: 14px;">Offline Payment (₹)</label>
+                            <input type="number" id="offlineAmount" min="0" step="0.01" value="0" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
+                        </div>
+                    </div>
+                    <div style="text-align: center; padding: 10px; background: white; border-radius: 8px;">
+                        <strong style="color: #667eea;">Total: ₹<span id="splitTotal">0.00</span></strong>
+                    </div>
                 </div>
             </div>
             
@@ -584,9 +595,13 @@
         let cart = [];
         let selectedSport = '';
         let selectedCourt = null;
-        let bookingMethod = 'online';
+        let onlineAmount = 0;
+        let offlineAmount = 0;
+        let hasOnlinePayment = false;
+        let hasOfflinePayment = false;
         let billCounter = 1;
         let settings = {};
+        let currentUser = '';
         
         // Check auth
         (async function() {
@@ -635,26 +650,68 @@
                 const stored = localStorage.getItem('settings');
                 settings = stored ? JSON.parse(stored) : {
                     upiId: 'EZE0323912@CUB',
-                    merchantName: 'CTC Sports Arena',
+                    merchantName: 'CTC Sports Club',
                     qrImagePath: './images/CTC SPORTS ARENA-QRCode.png'
                 };
             }
             
+            // Get current user
+            currentUser = localStorage.getItem('username') || 'Unknown';
+            
             renderCart();
             
-            // Set initial booking method
-            const initialMethod = document.querySelector('input[name="bookingMethod"]:checked');
-            if (initialMethod) {
-                bookingMethod = initialMethod.value;
+            // Payment mode checkbox handlers
+            const onlineCheck = document.getElementById('onlinePaymentCheck');
+            const offlineCheck = document.getElementById('offlinePaymentCheck');
+            const onlineDiv = document.getElementById('onlinePaymentDiv');
+            const offlineDiv = document.getElementById('offlinePaymentDiv');
+            const amountsContainer = document.getElementById('paymentAmountsContainer');
+            const onlineInput = document.getElementById('onlineAmount');
+            const offlineInput = document.getElementById('offlineAmount');
+            
+            function updatePaymentModeDisplay() {
+                hasOnlinePayment = onlineCheck.checked;
+                hasOfflinePayment = offlineCheck.checked;
+                
+                if (hasOnlinePayment || hasOfflinePayment) {
+                    amountsContainer.style.display = 'block';
+                    onlineDiv.style.display = hasOnlinePayment ? 'block' : 'none';
+                    offlineDiv.style.display = hasOfflinePayment ? 'block' : 'none';
+                } else {
+                    amountsContainer.style.display = 'none';
+                }
+                
+                updateSplitTotal();
             }
             
-            // Booking method change
-            document.querySelectorAll('input[name="bookingMethod"]').forEach(radio => {
-                radio.addEventListener('change', function() {
-                    bookingMethod = this.value;
-                    console.log('Booking method changed to:', bookingMethod);
-                });
-            });
+            function updateSplitTotal() {
+                onlineAmount = hasOnlinePayment ? (parseFloat(onlineInput.value) || 0) : 0;
+                offlineAmount = hasOfflinePayment ? (parseFloat(offlineInput.value) || 0) : 0;
+                const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const splitTotal = onlineAmount + offlineAmount;
+                
+                document.getElementById('splitTotal').textContent = splitTotal.toFixed(2);
+                
+                // Validate split total matches cart total
+                if (Math.abs(splitTotal - total) > 0.01) {
+                    document.getElementById('splitTotal').style.color = '#ff4757';
+                } else {
+                    document.getElementById('splitTotal').style.color = '#667eea';
+                }
+            }
+            
+            onlineCheck.addEventListener('change', updatePaymentModeDisplay);
+            offlineCheck.addEventListener('change', updatePaymentModeDisplay);
+            onlineInput.addEventListener('input', updateSplitTotal);
+            offlineInput.addEventListener('input', updateSplitTotal);
+            
+            // Initialize with online payment selected by default
+            onlineCheck.checked = true;
+            hasOnlinePayment = true;
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            onlineInput.value = total.toFixed(2);
+            onlineAmount = total;
+            updatePaymentModeDisplay();
         })();
         
         function renderCart() {
@@ -763,8 +820,24 @@
         
         async function completePayment() {
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const splitTotal = onlineAmount + offlineAmount;
             
-            if (!confirm(`Mark payment as completed?\n\nTotal Amount: ₹${total.toFixed(2)}\nBooking Method: ${bookingMethod}\n\nThis will save the transaction to Sales Report.`)) {
+            // Validate payment split
+            if (Math.abs(splitTotal - total) > 0.01) {
+                alert(`Payment split (₹${splitTotal.toFixed(2)}) does not match total amount (₹${total.toFixed(2)}). Please adjust the payment amounts.`);
+                return;
+            }
+            
+            // Build payment summary
+            let paymentSummary = `Total Amount: ₹${total.toFixed(2)}\n`;
+            if (hasOnlinePayment) {
+                paymentSummary += `Online: ₹${onlineAmount.toFixed(2)}\n`;
+            }
+            if (hasOfflinePayment) {
+                paymentSummary += `Offline: ₹${offlineAmount.toFixed(2)}\n`;
+            }
+            
+            if (!confirm(`Mark payment as completed?\n\n${paymentSummary}\nThis will save the transaction to Sales Report.`)) {
                 return;
             }
             
@@ -774,9 +847,16 @@
                 date: new Date().toISOString(),
                 items: [...cart],
                 total: total,
+                onlineAmount: hasOnlinePayment ? onlineAmount : 0,
+                offlineAmount: hasOfflinePayment ? offlineAmount : 0,
+                hasOnlinePayment: hasOnlinePayment,
+                hasOfflinePayment: hasOfflinePayment,
                 sport: selectedSport,
-                bookingMethod: bookingMethod,
-                court: selectedCourt ? selectedCourt.name : 'N/A'
+                court: selectedCourt ? selectedCourt.name : 'N/A',
+                customerName: selectedCourt ? selectedCourt.customerName : 'N/A',
+                courtDate: selectedCourt ? selectedCourt.courtDate : 'N/A',
+                courtTime: selectedCourt ? selectedCourt.courtTime : 'N/A',
+                user: currentUser
             };
             
             // Save to Firebase or localStorage
@@ -792,6 +872,9 @@
             sessionStorage.removeItem('cart');
             sessionStorage.removeItem('selectedCourt');
             sessionStorage.removeItem('selectedSport');
+            
+            // Show print bill
+            await printBill();
             
             // Show success and redirect
             alert(`✅ Payment Completed Successfully!\n\nAmount: ₹${total.toFixed(2)}\nBill No: BILL-${String(transaction.id).slice(-4).padStart(4, '0')}\n\n✅ Entry added to Sales Report`);
@@ -814,16 +897,30 @@
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             const now = new Date();
             
-            document.getElementById('billMerchantName').textContent = currentSettings.merchantName || 'CTC Sports Arena';
+            document.getElementById('billMerchantName').textContent = 'CTC Sports Club';
             document.getElementById('billNumber').textContent = `BILL-${String(billCounter).padStart(4, '0')}`;
             document.getElementById('billDate').textContent = now.toLocaleString('en-IN');
             
             const billInfo = document.getElementById('billInfo');
             if (billInfo) {
+                const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                let paymentInfo = '';
+                if (hasOnlinePayment && hasOfflinePayment) {
+                    paymentInfo = `<p>Online Payment: <strong>₹${onlineAmount.toFixed(2)}</strong></p><p>Offline Payment: <strong>₹${offlineAmount.toFixed(2)}</strong></p>`;
+                } else if (hasOnlinePayment) {
+                    paymentInfo = `<p>Online Payment: <strong>₹${onlineAmount.toFixed(2)}</strong></p>`;
+                } else if (hasOfflinePayment) {
+                    paymentInfo = `<p>Offline Payment: <strong>₹${offlineAmount.toFixed(2)}</strong></p>`;
+                }
+                
                 billInfo.innerHTML = `
+                    <p>Customer Name: <strong>${selectedCourt && selectedCourt.customerName ? selectedCourt.customerName : 'N/A'}</strong></p>
                     <p>Sport: <strong>${selectedSport}</strong></p>
                     <p>Court: <strong>${selectedCourt ? selectedCourt.name : 'N/A'}</strong></p>
-                    <p>Booking Method: <strong>${bookingMethod}</strong></p>
+                    <p>Date: <strong>${selectedCourt && selectedCourt.courtDate ? selectedCourt.courtDate : 'N/A'}</strong></p>
+                    <p>Time: <strong>${selectedCourt && selectedCourt.courtTime ? selectedCourt.courtTime : 'N/A'}</strong></p>
+                    ${paymentInfo}
+                    <p>Processed by: <strong>${currentUser}</strong></p>
                 `;
             }
             

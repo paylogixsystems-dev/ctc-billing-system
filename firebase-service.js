@@ -27,15 +27,30 @@ initFirebase();
 
 // ==================== AUTHENTICATION ====================
 
+// User credentials mapping
+const USER_CREDENTIALS = {
+    'admin': 'CTC2023',
+    'CTCUSER1': 'CTC123',
+    'CTCUSER2': 'CTC1234'
+};
+
+// Check if user is admin
+function isAdmin(username) {
+    return username === 'admin';
+}
+
 async function firebaseLogin(username, password) {
+    // Validate credentials
+    if (!USER_CREDENTIALS[username] || USER_CREDENTIALS[username] !== password) {
+        return { success: false, error: 'Invalid username or password' };
+    }
+    
     if (!firebaseEnabled) {
         // Fallback to local auth
-        if (username === 'admin' && password === 'admin123') {
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('username', username);
-            return { success: true };
-        }
-        return { success: false, error: 'Invalid credentials' };
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('username', username);
+        localStorage.setItem('userRole', isAdmin(username) ? 'admin' : 'user');
+        return { success: true };
     }
 
     try {
@@ -46,21 +61,25 @@ async function firebaseLogin(username, password) {
         // Store user info
         localStorage.setItem('isLoggedIn', 'true');
         localStorage.setItem('username', username);
+        localStorage.setItem('userRole', isAdmin(username) ? 'admin' : 'user');
         localStorage.setItem('firebaseUserId', auth.currentUser.uid);
         
         return { success: true };
     } catch (error) {
         // If user doesn't exist, create it (first time setup)
-        if (error.code === 'auth/user-not-found' && username === 'admin' && password === 'admin123') {
+        if (error.code === 'auth/user-not-found') {
             try {
                 const email = `${username}@ctcbilling.com`;
                 await auth.createUserWithEmailAndPassword(email, password);
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('username', username);
+                localStorage.setItem('userRole', isAdmin(username) ? 'admin' : 'user');
                 localStorage.setItem('firebaseUserId', auth.currentUser.uid);
                 
-                // Initialize default data
-                await initializeFirebaseData();
+                // Initialize default data only for admin
+                if (isAdmin(username)) {
+                    await initializeFirebaseData();
+                }
                 
                 return { success: true };
             } catch (createError) {
@@ -77,6 +96,7 @@ function firebaseLogout() {
     }
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('username');
+    localStorage.removeItem('userRole');
     localStorage.removeItem('firebaseUserId');
 }
 
@@ -102,14 +122,12 @@ function checkFirebaseAuth() {
 async function initializeFirebaseData() {
     if (!firebaseEnabled) return;
     
-    const userId = auth.currentUser.uid;
-    
-    // Check if data exists
-    const menuDoc = await db.collection('users').doc(userId).collection('data').doc('menuItems').get();
-    const settingsDoc = await db.collection('users').doc(userId).collection('data').doc('settings').get();
+    // Check if data exists in shared collection
+    const menuDoc = await db.collection('shared').doc('menuItems').get();
+    const settingsDoc = await db.collection('shared').doc('settings').get();
     
     if (!menuDoc.exists) {
-        // Initialize default menu
+        // Initialize default menu in shared collection
         const defaultMenu = [
             { id: 1, name: 'Court 1', category: 'Badminton', price: 300 },
             { id: 2, name: 'Court 2', category: 'Badminton', price: 300 },
@@ -124,19 +142,25 @@ async function initializeFirebaseData() {
             { id: 13, name: 'Court 1', category: 'Pickleball', price: 300 },
             { id: 14, name: 'Court 2', category: 'Pickleball', price: 300 }
         ];
-        await db.collection('users').doc(userId).collection('data').doc('menuItems').set({ items: defaultMenu });
+        await db.collection('shared').doc('menuItems').set({ 
+            items: defaultMenu,
+            lastUpdated: new Date().toISOString(),
+            updatedBy: localStorage.getItem('username') || 'admin'
+        });
     }
     
     if (!settingsDoc.exists) {
-        await db.collection('users').doc(userId).collection('data').doc('settings').set({
+        await db.collection('shared').doc('settings').set({
             upiId: 'EZE0323912@CUB',
-            merchantName: 'CTC Sports Arena',
-            qrImagePath: './images/CTC SPORTS ARENA-QRCode.png'
+            merchantName: 'CTC Sports Club',
+            qrImagePath: './images/CTC SPORTS ARENA-QRCode.png',
+            lastUpdated: new Date().toISOString(),
+            updatedBy: localStorage.getItem('username') || 'admin'
         });
     }
 }
 
-// Menu Items
+// Menu Items - Using shared collection for all users
 async function loadMenuItemsFromFirebase() {
     if (!firebaseEnabled) {
         const stored = localStorage.getItem('menuItems');
@@ -144,10 +168,13 @@ async function loadMenuItemsFromFirebase() {
     }
     
     try {
-        const userId = auth.currentUser.uid;
-        const doc = await db.collection('users').doc(userId).collection('data').doc('menuItems').get();
+        // Use shared collection instead of user-specific
+        const doc = await db.collection('shared').doc('menuItems').get();
         if (doc.exists) {
-            return doc.data().items || [];
+            const items = doc.data().items || [];
+            // Also update localStorage for immediate access
+            localStorage.setItem('menuItems', JSON.stringify(items));
+            return items;
         }
     } catch (error) {
         console.error('Error loading menu items:', error);
@@ -162,29 +189,36 @@ async function saveMenuItemsToFirebase(items) {
     if (!firebaseEnabled) return;
     
     try {
-        const userId = auth.currentUser.uid;
-        await db.collection('users').doc(userId).collection('data').doc('menuItems').set({ items });
+        // Use shared collection instead of user-specific
+        await db.collection('shared').doc('menuItems').set({ 
+            items,
+            lastUpdated: new Date().toISOString(),
+            updatedBy: localStorage.getItem('username') || 'Unknown'
+        });
     } catch (error) {
         console.error('Error saving menu items:', error);
     }
 }
 
-// Settings
+// Settings - Using shared collection for all users
 async function loadSettingsFromFirebase() {
     if (!firebaseEnabled) {
         const stored = localStorage.getItem('settings');
         return stored ? JSON.parse(stored) : {
             upiId: 'EZE0323912@CUB',
-            //merchantName: 'CTC Sports Arena',
+            merchantName: 'CTC Sports Club',
             qrImagePath: './images/CTC SPORTS ARENA-QRCode.png'
         };
     }
     
     try {
-        const userId = auth.currentUser.uid;
-        const doc = await db.collection('users').doc(userId).collection('data').doc('settings').get();
+        // Use shared collection instead of user-specific
+        const doc = await db.collection('shared').doc('settings').get();
         if (doc.exists) {
-            return doc.data();
+            const settings = doc.data();
+            // Also update localStorage for immediate access
+            localStorage.setItem('settings', JSON.stringify(settings));
+            return settings;
         }
     } catch (error) {
         console.error('Error loading settings:', error);
@@ -192,7 +226,7 @@ async function loadSettingsFromFirebase() {
     
     return {
         upiId: 'EZE0323912@CUB',
-        //merchantName: 'CTC Sports Arena',
+        merchantName: 'CTC Sports Club',
         qrImagePath: './images/CTC SPORTS ARENA-QRCode.png'
     };
 }
@@ -203,14 +237,18 @@ async function saveSettingsToFirebase(settings) {
     if (!firebaseEnabled) return;
     
     try {
-        const userId = auth.currentUser.uid;
-        await db.collection('users').doc(userId).collection('data').doc('settings').set(settings);
+        // Use shared collection instead of user-specific
+        await db.collection('shared').doc('settings').set({
+            ...settings,
+            lastUpdated: new Date().toISOString(),
+            updatedBy: localStorage.getItem('username') || 'Unknown'
+        });
     } catch (error) {
         console.error('Error saving settings:', error);
     }
 }
 
-// Transactions
+// Transactions - Using shared collection for all users
 async function loadTransactionsFromFirebase() {
     if (!firebaseEnabled) {
         const stored = localStorage.getItem('transactions');
@@ -218,9 +256,12 @@ async function loadTransactionsFromFirebase() {
     }
     
     try {
-        const userId = auth.currentUser.uid;
-        const snapshot = await db.collection('users').doc(userId).collection('transactions').orderBy('date', 'desc').get();
-        return snapshot.docs.map(doc => doc.data());
+        // Use shared collection instead of user-specific
+        const snapshot = await db.collection('shared').doc('transactions').collection('all').orderBy('date', 'desc').get();
+        const transactions = snapshot.docs.map(doc => doc.data());
+        // Also update localStorage for immediate access
+        localStorage.setItem('transactions', JSON.stringify(transactions));
+        return transactions;
     } catch (error) {
         console.error('Error loading transactions:', error);
     }
@@ -236,29 +277,25 @@ async function saveTransactionToFirebase(transaction) {
     if (!firebaseEnabled) return;
     
     try {
-        const userId = auth.currentUser.uid;
-        await db.collection('users').doc(userId).collection('transactions').doc(String(transaction.id)).set(transaction);
+        // Use shared collection instead of user-specific
+        await db.collection('shared').doc('transactions').collection('all').doc(String(transaction.id)).set(transaction);
     } catch (error) {
         console.error('Error saving transaction:', error);
     }
 }
 
-// Real-time sync listeners
+// Real-time sync listeners - Using shared collections
 function setupRealtimeSync() {
     if (!firebaseEnabled) return;
     
-    const userId = auth.currentUser.uid;
-    
-    // Sync menu items
-    db.collection('users').doc(userId).collection('data').doc('menuItems')
+    // Sync menu items from shared collection
+    db.collection('shared').doc('menuItems')
         .onSnapshot((doc) => {
             if (doc.exists) {
                 const items = doc.data().items || [];
                 localStorage.setItem('menuItems', JSON.stringify(items));
                 // Trigger update if menu is loaded
                 if (typeof renderMenu === 'function') {
-                    // Data already in localStorage, just trigger render
-                    // If loadMenuItems is available, call it async
                     if (typeof loadMenuItems === 'function') {
                         loadMenuItems().then(() => {
                             if (typeof renderMenu === 'function') {
@@ -266,7 +303,6 @@ function setupRealtimeSync() {
                             }
                         }).catch(err => {
                             console.error('Error loading menu items:', err);
-                            // Still try to render if loadMenuItems fails
                             if (typeof renderMenu === 'function') {
                                 renderMenu();
                             }
@@ -278,8 +314,8 @@ function setupRealtimeSync() {
             }
         });
     
-    // Sync settings
-    db.collection('users').doc(userId).collection('data').doc('settings')
+    // Sync settings from shared collection
+    db.collection('shared').doc('settings')
         .onSnapshot((doc) => {
             if (doc.exists) {
                 const settings = doc.data();
@@ -287,8 +323,8 @@ function setupRealtimeSync() {
             }
         });
     
-    // Sync transactions
-    db.collection('users').doc(userId).collection('transactions')
+    // Sync transactions from shared collection
+    db.collection('shared').doc('transactions').collection('all')
         .orderBy('date', 'desc')
         .onSnapshot((snapshot) => {
             const transactions = snapshot.docs.map(doc => doc.data());
@@ -314,6 +350,9 @@ window.firebaseService = {
     loadTransactionsFromFirebase,
     saveTransactionToFirebase,
     setupRealtimeSync,
-    isEnabled: () => firebaseEnabled
+    isEnabled: () => firebaseEnabled,
+    isAdmin: (username) => isAdmin(username),
+    getCurrentUser: () => localStorage.getItem('username'),
+    getCurrentUserRole: () => localStorage.getItem('userRole') || 'user'
 };
 

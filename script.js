@@ -604,6 +604,7 @@ function logout() {
         } else {
             localStorage.removeItem('isLoggedIn');
             localStorage.removeItem('username');
+            localStorage.removeItem('userRole');
         }
         window.location.href = './login.html';
     }

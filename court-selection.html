@@ -156,6 +156,45 @@
             transform: translateY(-1px);
         }
         
+        .details-form {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            margin-top: 25px;
+            display: none;
+        }
+        
+        .details-form.show {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
         @media (max-width: 768px) {
             .sport-header {
                 padding: 20px 15px 20px 15px;
@@ -208,7 +247,28 @@
             <!-- Courts will be loaded here -->
         </div>
         
-        <button class="continue-btn" id="continueBtn" onclick="continueToEquipment()">Continue to Equipment →</button>
+        <div class="details-form" id="detailsForm">
+            <h2 style="color: #667eea; margin-bottom: 20px; text-align: center;">Enter Details</h2>
+            <div class="form-group">
+                <label for="customerName">Name *</label>
+                <input type="text" id="customerName" placeholder="Enter customer name" required>
+            </div>
+            <div class="form-group">
+                <label for="courtDate">Date *</label>
+                <input type="date" id="courtDate" required>
+            </div>
+            <div class="form-group">
+                <label for="courtTime">Time *</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="time" id="courtTimeStart" style="flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
+                    <span style="font-weight: bold; color: #667eea;">to</span>
+                    <input type="time" id="courtTimeEnd" style="flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
+                </div>
+                <p style="margin-top: 5px; font-size: 12px; color: #666;">Or enter custom time below</p>
+                <input type="text" id="courtTimeCustom" placeholder="e.g., 6:00 PM - 7:00 PM" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; margin-top: 5px;">
+            </div>
+            <button class="continue-btn" onclick="continueToEquipment()" style="display: block;">Continue to Equipment →</button>
+        </div>
     </main>
 
     <!-- Firebase SDK -->
@@ -244,8 +304,40 @@
             }
             
             document.getElementById('sportName').textContent = selectedSport;
+            
+            // Set default date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('courtDate').value = today;
+            document.getElementById('courtDate').min = today; // Prevent past dates
+            
+            // Set default times (6:00 PM to 7:00 PM)
+            document.getElementById('courtTimeStart').value = '18:00';
+            document.getElementById('courtTimeEnd').value = '19:00';
+            
+            // Auto-format time inputs when changed
+            document.getElementById('courtTimeStart').addEventListener('change', updateTimeDisplay);
+            document.getElementById('courtTimeEnd').addEventListener('change', updateTimeDisplay);
+            
             await loadCourts();
         })();
+        
+        function formatTime24To12(time24) {
+            const [hour, minute] = time24.split(':').map(Number);
+            const period = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
+            return `${displayHour}:${String(minute).padStart(2, '0')} ${period}`;
+        }
+        
+        function updateTimeDisplay() {
+            const startTime = document.getElementById('courtTimeStart').value;
+            const endTime = document.getElementById('courtTimeEnd').value;
+            
+            if (startTime && endTime) {
+                const formattedStart = formatTime24To12(startTime);
+                const formattedEnd = formatTime24To12(endTime);
+                document.getElementById('courtTimeCustom').value = `${formattedStart} - ${formattedEnd}`;
+            }
+        }
         
         async function loadCourts() {
             // Load menu items
@@ -297,8 +389,8 @@
             
             selectedCourt = { id: courtId, name: courtName };
             
-            // Show continue button
-            document.getElementById('continueBtn').classList.add('show');
+            // Show details form
+            document.getElementById('detailsForm').classList.add('show');
         }
         
         function continueToEquipment() {
@@ -307,8 +399,47 @@
                 return;
             }
             
-            // Save selected court to session
-            sessionStorage.setItem('selectedCourt', JSON.stringify(selectedCourt));
+            const customerName = document.getElementById('customerName').value.trim();
+            const courtDate = document.getElementById('courtDate').value;
+            const courtTimeStart = document.getElementById('courtTimeStart').value;
+            const courtTimeEnd = document.getElementById('courtTimeEnd').value;
+            const courtTimeCustom = document.getElementById('courtTimeCustom').value.trim();
+            
+            if (!customerName) {
+                alert('Please enter customer name');
+                return;
+            }
+            
+            if (!courtDate) {
+                alert('Please select date');
+                return;
+            }
+            
+            // Get time - prefer custom input, otherwise use time picker
+            let courtTime = '';
+            if (courtTimeCustom) {
+                courtTime = courtTimeCustom;
+            } else if (courtTimeStart && courtTimeEnd) {
+                const formattedStart = formatTime24To12(courtTimeStart);
+                const formattedEnd = formatTime24To12(courtTimeEnd);
+                courtTime = `${formattedStart} - ${formattedEnd}`;
+            } else {
+                alert('Please enter or select time');
+                return;
+            }
+            
+            // Format date for display
+            const dateObj = new Date(courtDate);
+            const formattedDate = dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            
+            // Save selected court and details to session
+            const courtDetails = {
+                ...selectedCourt,
+                customerName: customerName,
+                courtDate: formattedDate,
+                courtTime: courtTime
+            };
+            sessionStorage.setItem('selectedCourt', JSON.stringify(courtDetails));
             sessionStorage.setItem('selectedSport', selectedSport);
             
             // Initialize cart with court
