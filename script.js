@@ -15,6 +15,17 @@ let bookingMethod = 'walkin'; // online, offline, walkin
 
 // Initialize - Redirect to new flow if coming from old flow
 document.addEventListener('DOMContentLoaded', async function() {
+    // Skip initialization on pages that don't need it
+    const currentPage = window.location.pathname;
+    const skipPages = ['menu-manager.html', 'sales-report.html', 'login.html', 'sports-selection.html'];
+    const shouldSkip = skipPages.some(page => currentPage.includes(page));
+    
+    if (shouldSkip) {
+        // Only check auth for these pages, don't run full initialization
+        await checkAuth();
+        return;
+    }
+    
     await checkAuth();
     
     // Check if user is coming from old flow, redirect to new flow
@@ -30,8 +41,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     await loadSettings();
     loadCart();
     loadSelectedSport();
-    renderMenu();
-    renderCart();
+    
+    // Only render menu and cart if elements exist
+    if (document.getElementById('menuItems')) {
+        renderMenu();
+    }
+    if (document.getElementById('cartItems')) {
+        renderCart();
+    }
+    
     setupEventListeners();
     await initializeDefaultMenu();
     
@@ -43,6 +61,15 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 // Check if sport is selected, redirect if not
 function checkSportSelection() {
+    // Don't redirect on pages that don't need sport selection
+    const currentPage = window.location.pathname;
+    const skipPages = ['menu-manager.html', 'sales-report.html', 'login.html', 'sports-selection.html', 'payment-review.html', 'court-selection.html', 'equipment-selection.html', 'beverages-selection.html'];
+    const shouldSkip = skipPages.some(page => currentPage.includes(page));
+    
+    if (shouldSkip) {
+        return;
+    }
+    
     const sport = localStorage.getItem('selectedSport');
     if (!sport) {
         window.location.href = './sports-selection.html';
@@ -182,31 +209,54 @@ function setupEventListeners() {
         bookingMethod = initialMethod.value;
     }
     
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            currentCategory = this.dataset.category;
-            renderMenu();
+    // Only attach tab listeners if tabs exist
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    if (tabButtons.length > 0) {
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentCategory = this.dataset.category;
+                renderMenu();
+            });
         });
-    });
+    }
     
-    document.getElementById('clearCart').addEventListener('click', clearCart);
-    document.getElementById('payNowBtn').addEventListener('click', showPayNowModal);
-    document.getElementById('printBillBtn').addEventListener('click', printBill);
-    document.getElementById('completePayment').addEventListener('click', completePayment);
+    // Only attach listeners if elements exist
+    const clearCartBtn = document.getElementById('clearCart');
+    if (clearCartBtn) {
+        clearCartBtn.addEventListener('click', clearCart);
+    }
     
-    // Modal close
-    document.querySelector('.close').addEventListener('click', function() {
-        document.getElementById('payNowModal').style.display = 'none';
-    });
+    const payNowBtn = document.getElementById('payNowBtn');
+    if (payNowBtn) {
+        payNowBtn.addEventListener('click', showPayNowModal);
+    }
     
-    window.addEventListener('click', function(event) {
-        const modal = document.getElementById('payNowModal');
-        if (event.target === modal) {
-            modal.style.display = 'none';
-        }
-    });
+    const printBillBtn = document.getElementById('printBillBtn');
+    if (printBillBtn) {
+        printBillBtn.addEventListener('click', printBill);
+    }
+    
+    const completePaymentBtn = document.getElementById('completePayment');
+    if (completePaymentBtn) {
+        completePaymentBtn.addEventListener('click', completePayment);
+    }
+    
+    // Modal close - only if modal exists
+    const closeBtn = document.querySelector('.close');
+    const payNowModal = document.getElementById('payNowModal');
+    if (closeBtn && payNowModal) {
+        closeBtn.addEventListener('click', function() {
+            payNowModal.style.display = 'none';
+        });
+        
+        window.addEventListener('click', function(event) {
+            if (event.target === payNowModal) {
+                payNowModal.style.display = 'none';
+            }
+        });
+    }
 }
 
 // Cart Functions
