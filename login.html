@@ -91,7 +91,7 @@
 <body>
     <div class="login-container">
         <div class="login-box">
-            <h1>CTC Sports Club</h1>
+            <h1>CTC Sports Arena</h1>
             <h2 style="text-align: center; color: #666; margin-bottom: 30px; font-size: 20px;">Billing System Login</h2>
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group">
@@ -131,16 +131,16 @@
                     if (window.firebaseService && firebaseService.isEnabled()) {
                         const isAuth = await firebaseService.checkFirebaseAuth();
                         if (isAuth) {
-                            window.location.href = './index.html';
+                            window.location.href = './sports-selection.html';
                         }
                     } else if (localStorage.getItem('isLoggedIn') === 'true') {
-                        window.location.href = 'index.html';
+                        window.location.href = './sports-selection.html';
                     }
                 } catch (error) {
                     console.log('Auth check error:', error);
                     // If Firebase check fails, use localStorage
                     if (localStorage.getItem('isLoggedIn') === 'true') {
-                        window.location.href = 'index.html';
+                        window.location.href = './sports-selection.html';
                     }
                 }
             })();
@@ -190,8 +190,14 @@
                         }
                     }
                     
-                    // Redirect to main page
-                    window.location.href = 'index.html';
+                    // Clear any old sport selection to allow fresh choice
+                    localStorage.removeItem('selectedSport');
+                    sessionStorage.removeItem('selectedSport');
+                    sessionStorage.removeItem('cart');
+                    sessionStorage.removeItem('selectedCourt');
+                    
+                    // Redirect to sports selection page
+                    window.location.href = './sports-selection.html';
                 } else {
                     // Show error
                     errorMessage.textContent = result.error || 'Invalid username or password';

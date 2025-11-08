@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Menu - CTC  Badminton Billing System</title>
+    <title>Manage Menu - CTC Sports Arena Billing System</title>
     <link rel="stylesheet" href="./styles.css">
     <style>
         .manager-container {
@@ -169,7 +169,7 @@
 </head>
 <body>
     <header>
-        <h1>CTC Sports Club Badminton Billing System</h1>
+        <h1>CTC Sports Arena Billing System</h1>
         <nav>
             <a href="./sports-selection.html">Choose Sport</a>
             <a href="./index.html">Billing</a>
@@ -189,7 +189,7 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Merchant Name</label>
-                    <input type="text" id="merchantName" placeholder="CTC Sports Club">
+                    <input type="text" id="merchantName" placeholder="CTC Sports Arena">
                 </div>
                 <div class="form-group">
                     <label>UPI ID</label>
@@ -378,7 +378,7 @@
             detailsDiv.style.display = 'block';
         }
 
-        function handleFormSubmit(event) {
+        async function handleFormSubmit(event) {
             event.preventDefault();
             
             const item = {
@@ -398,24 +398,30 @@
             }
             
             if (editingItemId) {
-                updateMenuItem(editingItemId, item);
+                await updateMenuItem(editingItemId, item);
                 alert('Item updated successfully!');
             } else {
-                addMenuItem(item);
+                await addMenuItem(item);
                 alert('Item added successfully!');
             }
             
             resetForm();
-            loadItems();
+            await loadItems();
             // Clear dropdown selection after save
             document.getElementById('menuItemsDropdown').value = '';
             document.getElementById('selectedItemDetails').style.display = 'none';
         }
 
-        function editItem(id) {
-            // Reload from localStorage to get latest data
-            const stored = localStorage.getItem('menuItems');
-            const items = stored ? JSON.parse(stored) : [];
+        async function editItem(id) {
+            // Reload from Firebase or localStorage to get latest data
+            let items;
+            if (window.firebaseService && firebaseService.isEnabled()) {
+                items = await firebaseService.loadMenuItemsFromFirebase();
+            } else {
+                const stored = localStorage.getItem('menuItems');
+                items = stored ? JSON.parse(stored) : [];
+            }
+            
             const item = items.find(i => i.id === id);
             
             if (!item) {
@@ -437,10 +443,16 @@
             document.getElementById('itemForm').scrollIntoView({ behavior: 'smooth' });
         }
 
-        function deleteItem(id) {
-            // Reload from localStorage to get latest data
-            const stored = localStorage.getItem('menuItems');
-            const items = stored ? JSON.parse(stored) : [];
+        async function deleteItem(id) {
+            // Reload from Firebase or localStorage to get latest data
+            let items;
+            if (window.firebaseService && firebaseService.isEnabled()) {
+                items = await firebaseService.loadMenuItemsFromFirebase();
+            } else {
+                const stored = localStorage.getItem('menuItems');
+                items = stored ? JSON.parse(stored) : [];
+            }
+            
             const item = items.find(i => i.id === id);
             
             if (!item) {
@@ -450,9 +462,9 @@
             }
             
             if (confirm(`Are you sure you want to delete "${item.name}"?\n\nThis action cannot be undone.`)) {
-                deleteMenuItem(id);
+                await deleteMenuItem(id);
                 alert('Item deleted successfully!');
-                loadItems();
+                await loadItems();
                 // Clear dropdown selection after delete
                 document.getElementById('menuItemsDropdown').value = '';
                 document.getElementById('selectedItemDetails').style.display = 'none';
@@ -468,15 +480,14 @@
 
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                localStorage.removeItem('isLoggedIn');
-                localStorage.removeItem('username');
+                if (window.firebaseService && firebaseService.isEnabled()) {
+                    firebaseService.firebaseLogout();
+                } else {
+                    localStorage.removeItem('isLoggedIn');
+                    localStorage.removeItem('username');
+                }
                 window.location.href = './login.html';
             }
-        }
-
-        // Check authentication
-        if (localStorage.getItem('isLoggedIn') !== 'true') {
-            window.location.href = './login.html';
         }
 
         // Initialize

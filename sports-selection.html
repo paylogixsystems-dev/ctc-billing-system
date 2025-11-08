@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Choose Sport - CTC Sports Club Billing System</title>
+    <title>Choose Sport - CTC Sports Arena Billing System</title>
     <link rel="stylesheet" href="./styles.css">
     <style>
         .sports-container {
@@ -93,7 +93,7 @@
 </head>
 <body>
     <header>
-        <h1>CTC Sports Club Billing System</h1>
+        <h1>CTC Sports Arena Billing System</h1>
         <nav>
             <a href="./sports-selection.html" class="active">Choose Sport</a>
             <a href="./sales-report.html">Sales Report</a>
@@ -163,10 +163,19 @@
                 const isAuth = await firebaseService.checkFirebaseAuth();
                 if (!isAuth) {
                     window.location.href = './login.html';
+                    return;
                 }
             } else if (localStorage.getItem('isLoggedIn') !== 'true') {
                 window.location.href = './login.html';
+                return;
             }
+            
+            // Clear any old sport selection when user lands on this page
+            // This ensures user makes a fresh choice and prevents badminton auto-selection
+            localStorage.removeItem('selectedSport');
+            sessionStorage.removeItem('selectedSport');
+            sessionStorage.removeItem('cart');
+            sessionStorage.removeItem('selectedCourt');
         })();
     </script>
 </body>
