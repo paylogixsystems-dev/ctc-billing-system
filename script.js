@@ -63,10 +63,16 @@ function loadSelectedSport() {
     });
 }
 
-// Load from localStorage
-function loadMenuItems() {
-    const stored = localStorage.getItem('menuItems');
-    menuItems = stored ? JSON.parse(stored) : [];
+// Load from Firebase or localStorage
+async function loadMenuItems() {
+    if (window.firebaseService && firebaseService.isEnabled()) {
+        menuItems = await firebaseService.loadMenuItemsFromFirebase();
+        // Also update localStorage for immediate access
+        localStorage.setItem('menuItems', JSON.stringify(menuItems));
+    } else {
+        const stored = localStorage.getItem('menuItems');
+        menuItems = stored ? JSON.parse(stored) : [];
+    }
 }
 
 function loadSettings() {
@@ -91,8 +97,14 @@ function loadCart() {
     cart = stored ? JSON.parse(stored) : [];
 }
 
-function saveMenuItems() {
+async function saveMenuItems() {
+    // Always save to localStorage first for immediate access
     localStorage.setItem('menuItems', JSON.stringify(menuItems));
+    
+    // Also save to Firebase if enabled
+    if (window.firebaseService && firebaseService.isEnabled()) {
+        await firebaseService.saveMenuItemsToFirebase(menuItems);
+    }
 }
 
 function saveCart() {
@@ -451,7 +463,7 @@ function getMenuItems() {
 }
 
 async function addMenuItem(item) {
-    // Reload menu items first
+    // Reload menu items first to get latest data
     await loadMenuItems();
     
     const newItem = {
@@ -465,10 +477,12 @@ async function addMenuItem(item) {
     if (document.getElementById('menuItems')) {
         renderMenu();
     }
+    
+    return newItem;
 }
 
 async function updateMenuItem(id, updatedItem) {
-    // Reload menu items first
+    // Reload menu items first to get latest data
     await loadMenuItems();
     
     const index = menuItems.findIndex(item => item.id === id);
@@ -480,13 +494,15 @@ async function updateMenuItem(id, updatedItem) {
         if (document.getElementById('menuItems')) {
             renderMenu();
         }
+        return true;
     } else {
         console.error('Item not found for update:', id);
+        return false;
     }
 }
 
 async function deleteMenuItem(id) {
-    // Reload menu items first
+    // Reload menu items first to get latest data
     await loadMenuItems();
     
     const beforeCount = menuItems.length;
@@ -499,8 +515,10 @@ async function deleteMenuItem(id) {
         if (document.getElementById('menuItems')) {
             renderMenu();
         }
+        return true;
     } else {
         console.error('Item not found for deletion:', id);
+        return false;
     }
 }
 

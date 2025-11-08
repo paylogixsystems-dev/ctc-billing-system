@@ -257,8 +257,23 @@ function setupRealtimeSync() {
                 localStorage.setItem('menuItems', JSON.stringify(items));
                 // Trigger update if menu is loaded
                 if (typeof renderMenu === 'function') {
-                    loadMenuItems();
-                    renderMenu();
+                    // Data already in localStorage, just trigger render
+                    // If loadMenuItems is available, call it async
+                    if (typeof loadMenuItems === 'function') {
+                        loadMenuItems().then(() => {
+                            if (typeof renderMenu === 'function') {
+                                renderMenu();
+                            }
+                        }).catch(err => {
+                            console.error('Error loading menu items:', err);
+                            // Still try to render if loadMenuItems fails
+                            if (typeof renderMenu === 'function') {
+                                renderMenu();
+                            }
+                        });
+                    } else {
+                        renderMenu();
+                    }
                 }
             }
         });
